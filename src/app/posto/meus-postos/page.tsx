@@ -205,6 +205,49 @@ export default function MeusPostosPage() {
 
   useEffect(() => { fetchPostos() }, [fetchPostos])
 
+  /**
+   * Preenche as coordenadas que faltam, uma por vez.
+   *
+   * Antes isso acontecia dentro do GET da listagem, em promises que ninguém
+   * aguardava — não completavam e a listagem repetia tudo na chamada seguinte.
+   * Agora sai daqui: a lista já apareceu, e o preenchimento acontece atrás,
+   * um posto por segundo, que é o teto da política do Nominatim.
+   *
+   * O endpoint é idempotente, então isto converge: depois que todos têm
+   * coordenada, `semCoordenada` fica vazio e nenhuma chamada acontece.
+   */
+  useEffect(() => {
+    const semCoordenada = postos.filter((p) => p.lat == null && p.cidade)
+    if (semCoordenada.length === 0) return
+
+    let cancelado = false
+    ;(async () => {
+      for (const posto of semCoordenada) {
+        if (cancelado) return
+        try {
+          const res = await fetch('/api/posto/meus-postos/geocodificar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: posto.id }),
+          })
+          if (res.ok) {
+            const { lat, lng } = await res.json()
+            if (!cancelado && lat != null) {
+              setPostos((prev) => prev.map((x) => (x.id === posto.id ? { ...x, lat, lng } : x)))
+            }
+          }
+        } catch { /* endereço não localizado não é erro para o usuário */ }
+        // 1 req/s é o limite pedido pelo Nominatim.
+        await new Promise((r) => setTimeout(r, 1100))
+      }
+    })()
+
+    return () => { cancelado = true }
+    // Só o conjunto de ids importa: reexecutar a cada troca de objeto faria
+    // a fila recomeçar a cada atualização de coordenada.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postos.map((p) => p.id).join(',')])
+
   const update    = (field: string, value: string) => setForm(f => ({ ...f, [field]: value }))
   const toggleFuel = (fuel: string) => setForm(f => ({
     ...f,

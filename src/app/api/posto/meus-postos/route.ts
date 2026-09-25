@@ -3,72 +3,8 @@ import { createClient, createServiceClient } from '@/lib/supabase-server'
 import { syncQuantidadeCnpj } from '@/lib/stripe-cnpj'
 import { normalizarWhatsapp } from '@/lib/utils'
 
-// ── Geocoding ───────────────────────────────────────────────────────────────
+import { geocode } from '@/lib/geocode'
 
-const ESTADO_NOME: Record<string, string> = {
-  AC: 'Acre', AL: 'Alagoas', AP: 'Amapá', AM: 'Amazonas', BA: 'Bahia',
-  CE: 'Ceará', DF: 'Distrito Federal', ES: 'Espírito Santo', GO: 'Goiás',
-  MA: 'Maranhão', MT: 'Mato Grosso', MS: 'Mato Grosso do Sul',
-  MG: 'Minas Gerais', PA: 'Pará', PB: 'Paraíba', PR: 'Paraná',
-  PE: 'Pernambuco', PI: 'Piauí', RJ: 'Rio de Janeiro',
-  RN: 'Rio Grande do Norte', RS: 'Rio Grande do Sul', RO: 'Rondônia',
-  RR: 'Roraima', SC: 'Santa Catarina', SP: 'São Paulo', SE: 'Sergipe',
-  TO: 'Tocantins',
-}
-
-async function geocode(
-  endereco: string, numero: string, bairro: string,
-  cidade: string, estado: string, cep: string
-): Promise<{ lat: number; lng: number } | null> {
-  const headers = { 'User-Agent': 'FleetPass/1.0', 'Accept-Language': 'pt-BR' }
-  const base = 'https://nominatim.openstreetmap.org/search'
-
-  const tryUrl = async (url: string) => {
-    const res = await fetch(url, { headers })
-    const data = await res.json()
-    if (data?.[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) }
-    return null
-  }
-
-  try {
-    const estadoNome = ESTADO_NOME[estado.toUpperCase()] ?? estado
-
-    // 1. Texto livre com bairro — dá contexto geográfico preciso ao Nominatim
-    if (endereco && bairro && cidade) {
-      const parts = [endereco, numero, bairro, cidade, estadoNome, 'Brasil'].filter(Boolean)
-      const r = await tryUrl(`${base}?q=${encodeURIComponent(parts.join(', '))}&format=json&limit=1&countrycodes=br`)
-      if (r) return r
-    }
-
-    // 2. Texto livre sem bairro
-    if (endereco && cidade) {
-      const parts = [endereco, numero, cidade, estadoNome, 'Brasil'].filter(Boolean)
-      const r = await tryUrl(`${base}?q=${encodeURIComponent(parts.join(', '))}&format=json&limit=1&countrycodes=br`)
-      if (r) return r
-    }
-
-    // 3. Busca estruturada (rua + número + cidade + estado)
-    if (endereco && cidade) {
-      const street = numero ? `${numero} ${endereco}` : endereco
-      const r = await tryUrl(`${base}?street=${encodeURIComponent(street)}&city=${encodeURIComponent(cidade)}&state=${encodeURIComponent(estadoNome)}&country=BR&format=json&limit=1`)
-      if (r) return r
-    }
-
-    // 4. CEP
-    if (cep) {
-      const clean = cep.replace(/\D/g, '')
-      if (clean.length === 8) {
-        const r = await tryUrl(`${base}?postalcode=${clean}&country=BR&format=json&limit=1`)
-        if (r) return r
-      }
-    }
-
-    // 5. Cidade + estado (fallback)
-    return await tryUrl(`${base}?city=${encodeURIComponent(cidade)}&state=${encodeURIComponent(estadoNome)}&country=BR&format=json&limit=1`)
-  } catch {
-    return null
-  }
-}
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -116,15 +52,12 @@ export async function GET() {
 
     if (dbError) throw dbError
 
-    // Geocodifica postos que ainda não têm coordenadas (sem bloquear resposta)
-    const svcBg = createServiceClient()
-    ;(postos ?? [])
-      .filter((p) => p.lat == null && p.cidade)
-      .forEach(async (p) => {
-        const coords = await geocode(p.endereco ?? '', p.numero ?? '', p.bairro ?? '', p.cidade, p.estado, p.cep ?? '')
-        if (coords) await svcBg.from('postos').update({ lat: coords.lat, lng: coords.lng }).eq('id', p.id)
-      })
-
+    // Aqui existia um `forEach(async …)` que geocodificava os postos sem
+    // coordenada. As promises não eram aguardadas: em serverless a função
+    // podia encerrar antes delas, o `update` não acontecia, e a listagem
+    // seguinte disparava tudo de novo — N chamadas ao Nominatim por GET, para
+    // sempre. O preenchimento passou para `./geocodificar`, chamado sob
+    // demanda e um de cada vez.
     return NextResponse.json({ postos: postos ?? [] })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
