@@ -148,7 +148,7 @@ function CardsDaCena() {
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.35, ease }}
-        className="absolute bottom-[10%] left-[30%] w-[46%] max-w-[22rem] rounded-xl3 bg-petrol-950/90 backdrop-blur-md p-4 shadow-glow"
+        className="tema-fixo absolute bottom-[10%] left-[30%] w-[46%] max-w-[22rem] rounded-xl3 bg-petrol-950/90 backdrop-blur-md p-4 shadow-glow"
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2 text-white/90">
@@ -185,7 +185,7 @@ function CardsDaCena() {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.55, ease }}
-        className="absolute bottom-[2%] left-[20%] w-[26%] max-w-[13rem] rounded-xl2 z-10 bg-white/95 dark:bg-[#1a2123]/95 backdrop-blur border border-petrol-100 shadow-soft p-3.5"
+        className="absolute bottom-[2%] left-[20%] w-[26%] max-w-[13rem] rounded-xl2 z-10 tema-fixo bg-white/95 backdrop-blur border border-petrol-100 shadow-soft p-3.5"
       >
         <div className="flex items-center justify-between">
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-fuel-600">

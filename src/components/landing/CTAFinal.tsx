@@ -42,7 +42,7 @@ export function CTAFinal() {
 
           {/* Posto */}
           <Reveal delay={0.1}>
-            <div className="h-full rounded-xl3 bg-fuel-600 p-8 sm:p-10 text-white relative overflow-hidden">
+            <div className="tema-fixo h-full rounded-xl3 bg-fuel-600 p-8 sm:p-10 text-white relative overflow-hidden">
               <div aria-hidden className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-fuel-300/30 blur-2xl" />
               <span className="relative inline-flex w-12 h-12 rounded-2xl bg-white/15 items-center justify-center">
                 <Fuel size={22} />

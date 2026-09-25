@@ -202,6 +202,64 @@
 .dark .bg-white { background-color: #1a2123; }
 .dark .hover\:bg-white:hover { background-color: #1d2427; }
 
+/* ── Blocos que já são escuros POR DESENHO ────────────────────────────────
+   O hero, o rodapé, o CTA da landing e o painel do login usam petróleo-950
+   como SUPERFÍCIE, com texto claro por cima. Na inversão a superfície
+   clareava e o texto claro continuava claro — sumia.
+
+   Em vez de caçar classe por classe, os tokens voltam aos valores do tema
+   claro dentro desses blocos. Como custom property é herdada, tudo que está
+   lá dentro passa a se comportar exatamente como no claro, e o bloco fica
+   igual nos dois temas — que é o que o desenho pede.
+
+   `bg-petrol-950` e `bg-ink` entram sozinhos porque, neste código, só
+   aparecem como superfície escura. `.tema-fixo` é para os demais (o cartão
+   âmbar do CTA, por exemplo), marcados à mão. */
+.dark :is(.bg-petrol-950, .bg-ink, .tema-fixo) {
+  --color-gray-50:  #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  --color-petrol-50:  #f0fdfa;
+  --color-petrol-100: #ccfbf1;
+  --color-petrol-700: #0f766e;
+  --color-petrol-800: #115e59;
+  --color-petrol-900: #134e4a;
+  --color-petrol-950: #042f2e;
+
+  --color-fuel-50:  #fffbeb;
+  --color-fuel-100: #fef3c7;
+  --color-fuel-700: #b45309;
+  --color-fuel-800: #92400e;
+  --color-fuel-900: #78350f;
+  --color-fuel-950: #451a03;
+
+  --color-emerald-50:  #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-700: #047857;
+  --color-emerald-800: #065f46;
+  --color-emerald-900: #064e3b;
+
+  --color-red-50:  #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
+  --color-red-900: #7f1d1d;
+
+  --color-ink:  #0a2024;
+  --color-sand: #f6f8f8;
+}
+/* Dentro deles, `bg-white` volta a ser branco (botões claros sobre o escuro). */
+.dark :is(.bg-petrol-950, .bg-ink, .tema-fixo) .bg-white { background-color: #ffffff; }
+
 .dark body { background: #12181a; }
 .dark ::selection { background: var(--color-petrol-800); color: var(--color-petrol-50); }
 
