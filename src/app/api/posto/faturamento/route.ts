@@ -37,8 +37,15 @@ export async function GET() {
     const { postoIds, postoNome } = await contaEPostos(svc, user.id)
     if (postoIds.length === 0) return NextResponse.json({ faturamentos: [] })
 
-    // 1. Faturas já fechadas (tabela faturamentos)
-    const { data: fechadasRaw } = await svc
+    // As duas leituras abaixo só dependem de `postoIds` — nenhuma usa o
+    // resultado da outra. Estavam em sequência, somando os dois tempos de ida
+    // e volta; agora partem juntas. A cadeia acima (auth → contas_posto →
+    // postos) continua sequencial porque cada passo alimenta o próximo, e a
+    // consulta de parcerias mais abaixo continua depois dos pendentes porque
+    // usa os ids que saem deles.
+    const [{ data: fechadasRaw }, { data: pend }] = await Promise.all([
+      // 1. Faturas já fechadas (tabela faturamentos)
+      svc
       .from('faturamentos')
       .select(`
         id, numero, posto_id, periodo_inicio, periodo_fim, ciclo, desc_ciclo,
@@ -47,7 +54,20 @@ export async function GET() {
         faturamento_abastecimentos ( abastecimentos ( codigo, data, combustivel, litros, valor, veiculos ( placa ), motoristas ( nome ) ) )
       `)
       .in('posto_id', postoIds)
-      .order('data_faturamento', { ascending: false })
+      .order('data_faturamento', { ascending: false }),
+
+      // 2. Faturas pendentes — abastecimentos ainda não faturados
+      svc
+        .from('abastecimentos')
+        .select(`
+          id, parceria_id, posto_id, codigo, data, combustivel, litros, valor,
+          empresas ( nome_empresa, cnpj ), veiculos ( placa ), motoristas ( nome )
+        `)
+        .in('posto_id', postoIds)
+        .eq('status', 'pendente')
+        .not('parceria_id', 'is', null)
+        .order('data', { ascending: true }),
+    ])
 
     const mapDetalhe = (items: any[]) => (items ?? []).map((fa: any) => {
       const a = fa.abastecimentos
@@ -71,18 +91,7 @@ export async function GET() {
       }
     })
 
-    // 2. Faturas pendentes — abastecimentos ainda não faturados, agrupados por parceria
-    const { data: pend } = await svc
-      .from('abastecimentos')
-      .select(`
-        id, parceria_id, posto_id, codigo, data, combustivel, litros, valor,
-        empresas ( nome_empresa, cnpj ), veiculos ( placa ), motoristas ( nome )
-      `)
-      .in('posto_id', postoIds)
-      .eq('status', 'pendente')
-      .not('parceria_id', 'is', null)
-      .order('data', { ascending: true })
-
+    // Agrupa os pendentes por parceria.
     const grupos: Record<string, any[]> = {}
     for (const a of pend ?? []) {
       ;(grupos[a.parceria_id] ??= []).push(a)
