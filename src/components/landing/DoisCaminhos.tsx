@@ -35,8 +35,11 @@ export function DoisCaminhos() {
   return (
     <section id="dois-caminhos" className="py-20 sm:py-24 bg-sand scroll-mt-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <Reveal className="text-center max-w-2xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-petrol-950">
+        {/* max-w-3xl: em 2xl a frase do h2 não cabia em uma linha e "lados"
+            caía sozinho. text-balance evita órfã caso ainda quebre em telas
+            menores. */}
+        <Reveal className="text-center max-w-3xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-petrol-950 text-balance">
             O mesmo mecanismo protege os dois lados
           </h2>
           <p className="mt-4 text-lg text-petrol-800/70 leading-relaxed">

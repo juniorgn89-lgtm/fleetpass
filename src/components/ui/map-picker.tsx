@@ -8,7 +8,7 @@ import L from 'leaflet'
 const pinIcon = L.divIcon({
   html: `<div style="
     width:28px;height:28px;border-radius:50% 50% 50% 0;
-    background:#0e8285;transform:rotate(-45deg);
+    background:#0f766e;transform:rotate(-45deg);
     border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.4);
   "></div>`,
   className: '',

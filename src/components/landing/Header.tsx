@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { Logo } from '@/components/ui/logo'
 import { Fuel, Menu, X, Truck, ArrowRight } from 'lucide-react'
 import { LINKS } from './links'
 
+// Duas entradas, uma por seção que existe. "Benefícios" apontava para a seção
+// homônima, removida na simplificação da página — o link levava a lugar nenhum.
 const NAV = [
   { label: 'Como funciona', href: '#como-funciona' },
   { label: 'Para você',     href: '#dois-caminhos' },
-  { label: 'Benefícios',    href: '#beneficios' },
 ]
 
 export function Header() {
@@ -30,11 +32,8 @@ export function Header() {
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0" aria-label="FleetPass — início">
-          <span className="w-9 h-9 bg-petrol-600 rounded-xl flex items-center justify-center shadow-soft">
-            <Fuel size={18} className="text-white" />
-          </span>
-          <span className="text-lg font-bold tracking-tight text-petrol-950">FleetPass</span>
+        <Link href="/" className="shrink-0" aria-label="FleetPass — início">
+          <Logo tamanho={34} />
         </Link>
 
         {/* Nav (desktop) */}

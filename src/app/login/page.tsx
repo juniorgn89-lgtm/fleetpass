@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { Logo } from '@/components/ui/logo'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
-  Fuel, Eye, EyeOff, ShieldCheck, CheckCircle2, Car, Hash, MapPin, ScanLine, BadgeCheck, ArrowLeft,
+  Eye, EyeOff, ShieldCheck, CheckCircle2, Car, Fuel, Hash, MapPin, ScanLine, BadgeCheck, ArrowLeft,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -79,10 +80,7 @@ export default function LoginPage() {
             initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }}
           >
             <Link href="/" className="flex items-center gap-2.5">
-              <span className="w-10 h-10 bg-petrol-500 rounded-xl flex items-center justify-center shadow-lg shadow-petrol-900/50">
-                <Fuel size={20} className="text-white" />
-              </span>
-              <span className="text-xl font-bold text-white tracking-tight">FleetPass</span>
+              <Logo tamanho={36} variante="claro" />
             </Link>
           </motion.div>
 
@@ -199,10 +197,7 @@ export default function LoginPage() {
 
           {/* Mobile logo */}
           <Link href="/" className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-8 h-8 bg-petrol-600 rounded-lg flex items-center justify-center">
-              <Fuel size={16} className="text-white" />
-            </div>
-            <span className="font-bold text-gray-900">FleetPass</span>
+            <Logo tamanho={32} />
           </Link>
 
           <h1 className="text-2xl font-bold text-gray-900 mb-1">Bem-vindo de volta</h1>

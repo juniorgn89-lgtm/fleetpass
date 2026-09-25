@@ -3,9 +3,10 @@
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard, Store, Building2, ArrowLeftRight,
-  FileText, Settings, ShieldCheck, Layers,
+  FileText, Settings, Layers,
 } from 'lucide-react'
 import Link from 'next/link'
+import { Logo } from '@/components/ui/logo'
 import { usePathname } from 'next/navigation'
 import { usePerfilAtual } from '@/hooks/use-perfil-atual'
 
@@ -38,10 +39,8 @@ export function SidebarAdmin() {
     <aside className="w-64 h-full bg-white border-r border-gray-100 flex flex-col shrink-0">
       <div className="px-6 h-16 border-b border-gray-100 flex items-center">
         <Link href="/admin" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-            <ShieldCheck size={16} className="text-white" />
-          </div>
-          <span className="text-lg font-bold text-gray-900">FleetPass <span className="text-indigo-600">Admin</span></span>
+          <Logo tamanho={30} texto={false} />
+          <span className="text-lg font-bold text-gray-900">FleetPass <span className="text-petrol-600">Admin</span></span>
         </Link>
       </div>
 

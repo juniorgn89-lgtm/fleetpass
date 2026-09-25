@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Fuel, Linkedin, Instagram, Mail } from 'lucide-react'
+import { Logo } from '@/components/ui/logo'
+import { Linkedin, Instagram, Mail } from 'lucide-react'
 import { LINKS } from './links'
 
 const COLS = [
@@ -40,10 +41,7 @@ export function Footer() {
           {/* Marca */}
           <div>
             <Link href="/" className="flex items-center gap-2" aria-label="FleetPass — início">
-              <span className="w-9 h-9 bg-petrol-600 rounded-xl flex items-center justify-center">
-                <Fuel size={18} className="text-white" />
-              </span>
-              <span className="text-lg font-bold text-white">FleetPass</span>
+              <Logo tamanho={32} variante="claro" />
             </Link>
             <p className="mt-4 text-sm leading-relaxed max-w-xs">
               A plataforma que conecta transportadoras e postos para gestão de parcerias

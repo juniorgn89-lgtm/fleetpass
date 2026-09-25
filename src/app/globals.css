@@ -6,31 +6,34 @@
    Petróleo (teal escuro) = confiança · Âmbar = energia/combustível (CTAs).
    ───────────────────────────────────────────────────────────────────────── */
 @theme {
-  /* Marca — petróleo / teal */
-  --color-petrol-50:  #ecfdfb;
-  --color-petrol-100: #d0f6f2;
-  --color-petrol-200: #a6ece7;
-  --color-petrol-300: #6ddbd6;
-  --color-petrol-400: #34c0bf;
-  --color-petrol-500: #16a3a4;
-  --color-petrol-600: #0e8285;
-  --color-petrol-700: #11686c;
-  --color-petrol-800: #135257;
-  --color-petrol-900: #14454a;
-  --color-petrol-950: #052a30;
+  /* Marca — teal, ancorada na LOGO do Visor360 (#0f766e no degrau 700).
+     A cor de marca dos dois produtos vem do símbolo, não do tailwind.config:
+     o `navy` de lá é secundário. Trocar só os VALORES aqui reveste a aplicação
+     inteira — são ~270 usos de `petrol-*` no código, nenhum precisa mudar. */
+  --color-petrol-50:  #f0fdfa;
+  --color-petrol-100: #ccfbf1;
+  --color-petrol-200: #99f6e4;
+  --color-petrol-300: #5eead4;
+  --color-petrol-400: #2dd4bf;
+  --color-petrol-500: #14b8a6;
+  --color-petrol-600: #0d9488;
+  --color-petrol-700: #0f766e;  /* ← teal da logo do Visor360 */
+  --color-petrol-800: #115e59;
+  --color-petrol-900: #134e4a;
+  --color-petrol-950: #042f2e;
 
-  /* Acento — âmbar / combustível */
-  --color-fuel-50:  #fff8ed;
-  --color-fuel-100: #ffefd1;
-  --color-fuel-200: #ffdba2;
-  --color-fuel-300: #ffc068;
-  --color-fuel-400: #ff9c2f;
-  --color-fuel-500: #fb7e07;
-  --color-fuel-600: #e25f05;
-  --color-fuel-700: #bb4509;
-  --color-fuel-800: #94370f;
-  --color-fuel-900: #782f10;
-  --color-fuel-950: #5f2810;
+  /* Acento — âmbar, o segundo triângulo da logo do Visor360 (#fcb619 no 400) */
+  --color-fuel-50:  #fffbeb;
+  --color-fuel-100: #fef3c7;
+  --color-fuel-200: #fde68a;
+  --color-fuel-300: #fcd34d;
+  --color-fuel-400: #fcb619;  /* ← âmbar da logo do Visor360 */
+  --color-fuel-500: #f59e0b;
+  --color-fuel-600: #d97706;
+  --color-fuel-700: #b45309;
+  --color-fuel-800: #92400e;
+  --color-fuel-900: #78350f;
+  --color-fuel-950: #451a03;
 
   /* ── Identidade FleetPass aplicada a TODA a app ───────────────────────────
      Remapeia a paleta padrão do Tailwind para o design system da landing:
@@ -107,25 +110,25 @@
   --shadow-glow: 0 18px 60px -20px rgb(14 130 133 / 0.45);
 
   /* Fontes (já carregadas via next/font no layout) */
-  --font-sans: var(--font-geist), system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 }
 
 :root {
-  --brand: #0e8285;
-  --brand-hover: #11686c;
+  --brand: #0f766e;
+  --brand-hover: #115e59;
 }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
-  font-family: var(--font-geist), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   background: #ffffff;
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
-code, pre, kbd, samp { font-family: var(--font-geist-mono), monospace; }
+code, pre, kbd, samp { font-family: var(--font-jetbrains), ui-monospace, monospace; }
 
 ::selection { background: var(--color-petrol-200); color: var(--color-petrol-950); }
 

@@ -1,11 +1,8 @@
 import type { Metadata } from 'next'
 import { Header } from '@/components/landing/Header'
 import { Hero } from '@/components/landing/Hero'
-import { ProblemaHoje } from '@/components/landing/ProblemaHoje'
-import { DoisCaminhos } from '@/components/landing/DoisCaminhos'
 import { ComoFunciona } from '@/components/landing/ComoFunciona'
-import { EfeitoRede } from '@/components/landing/EfeitoRede'
-import { Beneficios } from '@/components/landing/Beneficios'
+import { DoisCaminhos } from '@/components/landing/DoisCaminhos'
 import { CTAFinal } from '@/components/landing/CTAFinal'
 import { Footer } from '@/components/landing/Footer'
 
@@ -55,13 +52,15 @@ export default function LandingPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Header />
+      {/* Cinco seções, não oito. A página tinha CINCO grades de três cards
+          seguidas (Problema, Como funciona, Efeito rede, Benefícios, Dois
+          caminhos) dizendo coisas sobrepostas — é isso que dá a sensação de
+          página gerada automaticamente. Ficou o essencial: o que é, como
+          funciona, para quem, e a chamada. */}
       <main>
         <Hero />
-        <ProblemaHoje />
         <ComoFunciona />
         <DoisCaminhos />
-        <EfeitoRede />
-        <Beneficios />
         <CTAFinal />
       </main>
       <Footer />

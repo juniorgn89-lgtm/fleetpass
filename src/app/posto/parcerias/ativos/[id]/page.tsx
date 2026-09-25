@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Logo } from '@/components/ui/logo'
 import Link from 'next/link'
-import { ArrowLeft, Fuel, Shield, Printer, Mail, MessageCircle, Plus, X, Pencil, Check, CheckSquare, Square, Clock, Send, CheckCircle2, Circle } from 'lucide-react'
+import { ArrowLeft, Shield, Printer, Mail, MessageCircle, Plus, X, Pencil, Check, CheckSquare, Square, Clock, Send, CheckCircle2, Circle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { use } from 'react'
 
@@ -286,10 +287,7 @@ export default function ContratoPostoPage({ params }: { params: Promise<{ id: st
         {/* Header */}
         <div className="px-8 pt-8 pb-6 text-center border-b border-gray-100">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Fuel size={16} className="text-white" />
-            </div>
-            <span className="text-lg font-bold text-gray-900">FleetPass</span>
+            <Logo tamanho={32} />
           </div>
           <h1 className="text-lg font-bold text-gray-900 tracking-wide uppercase">Contrato de Parceria Comercial</h1>
           <p className="text-sm text-gray-400 mt-1">N° {contratoNum} · Autenticação: {contrato.authNum}</p>

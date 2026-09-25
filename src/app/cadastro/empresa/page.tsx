@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { Logo } from '@/components/ui/logo'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
-  Fuel, CheckCircle, ChevronRight, Eye, EyeOff, Building2, AlertCircle,
+  CheckCircle, ChevronRight, Eye, EyeOff, Building2, AlertCircle,
   ShieldCheck, Ban, Truck, MapPin, ArrowLeft,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -155,10 +156,7 @@ export default function CadastroEmpresaPage() {
           {/* logo */}
           <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }}>
             <Link href="/" className="flex items-center gap-2.5">
-              <span className="w-10 h-10 bg-petrol-500 rounded-xl flex items-center justify-center shadow-lg shadow-petrol-900/50">
-                <Fuel size={20} className="text-white" />
-              </span>
-              <span className="text-xl font-bold text-white tracking-tight">FleetPass</span>
+              <Logo tamanho={36} variante="claro" />
             </Link>
           </motion.div>
 
@@ -225,10 +223,7 @@ export default function CadastroEmpresaPage() {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <Link href="/" className="flex lg:hidden items-center gap-2 justify-center mb-6">
-            <div className="w-8 h-8 bg-petrol-600 rounded-lg flex items-center justify-center">
-              <Fuel size={16} className="text-white" />
-            </div>
-            <span className="text-lg font-bold text-gray-900">FleetPass</span>
+            <Logo tamanho={32} />
           </Link>
 
           {/* Progress */}

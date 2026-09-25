@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Logo } from '@/components/ui/logo'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
-  Fuel, ArrowLeft, Eye, EyeOff, Lock, ShieldCheck, CheckCircle2, KeyRound, AlertCircle, Loader2,
+  ArrowLeft, Eye, EyeOff, Lock, ShieldCheck, CheckCircle2, KeyRound, AlertCircle, Loader2,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -86,10 +87,7 @@ export default function RedefinirSenhaPage() {
         <div className="relative z-10 flex flex-col justify-center gap-8 w-full max-w-xl mx-auto p-8 xl:p-10 overflow-y-auto">
           <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }}>
             <Link href="/" className="flex items-center gap-2.5">
-              <span className="w-10 h-10 bg-petrol-500 rounded-xl flex items-center justify-center shadow-lg shadow-petrol-900/50">
-                <Fuel size={20} className="text-white" />
-              </span>
-              <span className="text-xl font-bold text-white tracking-tight">FleetPass</span>
+              <Logo tamanho={36} variante="claro" />
             </Link>
           </motion.div>
 

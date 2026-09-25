@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Logo } from '@/components/ui/logo'
 import { Building2, Fuel, ArrowRight, ArrowLeft } from 'lucide-react'
 
 export default function CadastroPage() {
@@ -11,10 +12,7 @@ export default function CadastroPage() {
         <ArrowLeft size={16} /> Voltar ao início
       </Link>
       <Link href="/" className="flex items-center gap-2 mb-10">
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-          <Fuel size={16} className="text-white" />
-        </div>
-        <span className="text-lg font-bold text-gray-900">FleetPass</span>
+        <Logo tamanho={32} />
       </Link>
 
       <div className="text-center mb-8">

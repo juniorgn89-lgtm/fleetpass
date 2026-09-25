@@ -1,10 +1,11 @@
 'use client'
 
 import type forge from 'node-forge'
+import { Logo } from '@/components/ui/logo'
 import { use, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
-  AlertCircle, ArrowLeft, Fuel, Shield, Printer, Clock, Send, CheckCircle2, Circle,
+  AlertCircle, ArrowLeft, Shield, Printer, Clock, Send, CheckCircle2, Circle,
   Upload, Eye, EyeOff, X, Check, FileKey, MessageSquare,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -399,10 +400,7 @@ export default function ContratoPage({ params }: { params: Promise<{ id: string 
         {/* Header */}
         <div className="px-8 pt-8 pb-6 text-center border-b border-gray-100">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Fuel size={16} className="text-white" />
-            </div>
-            <span className="text-lg font-bold text-gray-900">FleetPass</span>
+            <Logo tamanho={32} />
           </div>
           <h1 className="text-lg font-bold text-gray-900 tracking-wide uppercase">Contrato de Parceria Comercial</h1>
           <p className="text-sm text-gray-400 mt-1">N° {contratoNum} · Autenticação: {contrato.authNum}</p>

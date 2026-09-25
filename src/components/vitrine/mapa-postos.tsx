@@ -29,7 +29,7 @@ const CENTRO_BRASIL: [number, number] = [-15.78, -47.93]
 const pino = L.divIcon({
   html: `<div style="
     width:26px;height:26px;border-radius:50% 50% 50% 0;
-    background:#0e8285;transform:rotate(-45deg);
+    background:#0f766e;transform:rotate(-45deg);
     border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.35);
   "></div>`,
   className: '',

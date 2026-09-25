@@ -3,9 +3,10 @@
 import { cn } from '@/lib/utils'
 import {
   Home, FileText, BarChart2, Settings, Users, Handshake,
-  ClipboardList, Fuel, Building2, Droplets, CalendarDays, Store, Receipt, Clock, UserPlus,
+  ClipboardList, Building2, Droplets, CalendarDays, Store, Receipt, Clock, UserPlus,
 } from 'lucide-react'
 import Link from 'next/link'
+import { Logo } from '@/components/ui/logo'
 import { usePathname } from 'next/navigation'
 import { useParceriasPendencias } from '@/hooks/use-parcerias-pendencias'
 import { usePerfilAtual } from '@/hooks/use-perfil-atual'
@@ -82,10 +83,7 @@ export function SidebarPosto() {
     <aside className="w-64 h-full bg-white border-r border-gray-100 flex flex-col shrink-0">
       <div className="px-6 h-16 border-b border-gray-100 flex items-center">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Fuel size={16} className="text-white" />
-          </div>
-          <span className="text-lg font-bold text-gray-900">FleetPass</span>
+          <Logo tamanho={30} />
         </Link>
       </div>
 

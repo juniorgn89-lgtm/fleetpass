@@ -1,9 +1,10 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
+import { Logo } from '@/components/ui/logo'
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { Fuel, CheckCircle, Store, ArrowRight, ShieldCheck } from 'lucide-react'
+import { CheckCircle, Store, ArrowRight, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 function SucessoContent() {
@@ -64,10 +65,7 @@ export default function PostoSucessoPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
       <Link href="/" className="flex items-center gap-2 mb-8">
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-          <Fuel size={16} className="text-white" />
-        </div>
-        <span className="text-lg font-bold text-gray-900">FleetPass</span>
+        <Logo tamanho={32} />
       </Link>
 
       <Suspense fallback={<div className="w-full max-w-md bg-white rounded-2xl border border-gray-100 shadow-sm p-8 h-64 animate-pulse" />}>

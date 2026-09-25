@@ -1,4 +1,4 @@
-import { Fuel } from 'lucide-react'
+import { Logo } from '@/components/ui/logo'
 import Link from 'next/link'
 
 export default function MotoristaLayout({ children }: { children: React.ReactNode }) {
@@ -7,10 +7,7 @@ export default function MotoristaLayout({ children }: { children: React.ReactNod
       {/* App header */}
       <header className="bg-blue-600 px-6 py-4 flex items-center justify-between shadow-sm">
         <Link href="/motorista" className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
-            <Fuel size={14} className="text-white" />
-          </div>
-          <span className="text-base font-bold text-white tracking-tight">FleetPass</span>
+          <Logo tamanho={28} variante="claro" />
         </Link>
         <span className="text-xs text-blue-200 font-medium">App do Motorista</span>
       </header>
