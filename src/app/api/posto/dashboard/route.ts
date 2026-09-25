@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 
     if (!postos?.length) {
       return NextResponse.json({
-        metrics: { abastecimentosMes: 0, receitaB2B: 0, solicitacoesPendentes: 0, empresasParceiras: 0 },
+        metrics: { abastecimentosPeriodo: 0, receitaB2B: 0, litrosPeriodo: 0, ticketMedio: 0, solicitacoesPendentes: 0, empresasParceiras: 0 },
         solicitacoes: [],
         recentActivity: [],
         periodos: buildPeriodos(),
@@ -43,8 +43,9 @@ export async function GET(req: NextRequest) {
     const periodoSel = periodos.find((p) => p.inicio === periodoParam) ?? periodos[0]
 
     // ── Métricas do mês atual (periodos[0]) ───────────────────────
-    const mesAtualInicio = periodos[0].inicio
-    const mesAtualFim    = periodos[0].fim
+    // Tudo na tela fala do MESMO período: cartões, tabela e gráficos. Antes
+    // estes dois saíam de periodos[0] (mês corrente, fixo), então trocar para
+    // "Ago/26" mudava a tabela e os gráficos e deixava os cartões em setembro.
 
     // Métricas + solicitações pendentes em paralelo (antes: 4 round-trips seriais)
     const [
@@ -54,7 +55,7 @@ export async function GET(req: NextRequest) {
       { data: solicitacoesRaw },
     ] = await Promise.all([
       svc.from('abastecimentos').select('valor')
-        .in('posto_id', postoIds).gte('data', mesAtualInicio).lte('data', mesAtualFim + 'T23:59:59'),
+        .in('posto_id', postoIds).gte('data', periodoSel.inicio).lte('data', periodoSel.fim + 'T23:59:59'),
       svc.from('solicitacoes').select('id', { count: 'exact', head: true })
         .in('posto_id', postoIds).eq('status', 'aguardando'),
       svc.from('parcerias').select('id', { count: 'exact', head: true })
@@ -65,7 +66,7 @@ export async function GET(req: NextRequest) {
       `).in('posto_id', postoIds).eq('status', 'aguardando').order('created_at', { ascending: false }).limit(10),
     ])
 
-    const abastecimentosMes = abastMes?.length ?? 0
+    const abastecimentosPeriodo = abastMes?.length ?? 0
     const receitaB2B = (abastMes ?? []).reduce((s, a) => s + Number(a.valor), 0)
 
     const postoNomeMap = Object.fromEntries(postos.map((p) => [p.id, p.nome]))
@@ -165,7 +166,7 @@ export async function GET(req: NextRequest) {
     // ── Desempenho por posto no período selecionado ───────────────
     const { data: abastPeriodo } = await svc
       .from('abastecimentos')
-      .select('posto_id, valor, litros, combustivel')
+      .select('posto_id, valor, litros, combustivel, data')
       .in('posto_id', postoIds)
       .gte('data', periodoSel.inicio)
       .lte('data', periodoSel.fim + 'T23:59:59')
@@ -187,10 +188,39 @@ export async function GET(req: NextRequest) {
       return { id: p.id, label: p.nome, receita, litros, count, combustiveis }
     })
 
+    // ── Série diária do período ───────────────────────────────────
+    // Alimenta os dois gráficos e os minigráficos dos cartões. Vem da MESMA
+    // consulta do desempenho — só reagrupada por dia, sem ida extra ao banco.
+    // Os dias sem movimento entram zerados: sem eles a linha "pula" buracos e
+    // sugere um período mais curto do que o real.
+    const porDia = new Map<string, { receita: number; litros: number; abastecimentos: number }>()
+    for (
+      let d = new Date(periodoSel.inicio + 'T00:00:00');
+      d <= new Date(periodoSel.fim + 'T00:00:00');
+      d.setDate(d.getDate() + 1)
+    ) {
+      porDia.set(d.toISOString().slice(0, 10), { receita: 0, litros: 0, abastecimentos: 0 })
+    }
+    ;(abastPeriodo ?? []).forEach((a) => {
+      const dia = String(a.data).slice(0, 10)
+      const acc = porDia.get(dia)
+      if (!acc) return
+      acc.receita += Number(a.valor)
+      acc.litros  += Number(a.litros)
+      acc.abastecimentos += 1
+    })
+    const serie = [...porDia.entries()].map(([dia, v]) => ({ dia, ...v }))
+
+    const litrosPeriodo = (abastPeriodo ?? []).reduce((t, a) => t + Number(a.litros), 0)
+    const ticketMedio = abastecimentosPeriodo > 0 ? receitaB2B / abastecimentosPeriodo : 0
+
     return NextResponse.json({
+      serie,
       metrics: {
-        abastecimentosMes,
+        abastecimentosPeriodo,
         receitaB2B,
+        litrosPeriodo,
+        ticketMedio,
         solicitacoesPendentes: solPendentes ?? 0,
         empresasParceiras: parceiros ?? 0,
       },

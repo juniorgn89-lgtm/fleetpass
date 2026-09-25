@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { Check, X, TrendingUp, Store, Building2, ChevronRight, ChevronLeft, Send, AlertCircle, CheckCircle2, Handshake, FilePlus } from 'lucide-react'
+import { Check, X, TrendingUp, Store, Building2, ChevronRight, ChevronLeft, Send, AlertCircle, CheckCircle2, Handshake, FilePlus, Fuel, DollarSign, Inbox, Users } from 'lucide-react'
+import { GraficoLinha, MiniGrafico, type PontoSerie } from '@/components/ui/grafico-linha'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
@@ -145,7 +147,8 @@ function StepIndicator({ step }: { step: number }) {
 export default function PostoDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [dashError, setDashError] = useState('')
-  const [metrics, setMetrics] = useState({ abastecimentosMes: 0, receitaB2B: 0, solicitacoesPendentes: 0, empresasParceiras: 0 })
+  const [metrics, setMetrics] = useState({ abastecimentosPeriodo: 0, receitaB2B: 0, litrosPeriodo: 0, ticketMedio: 0, solicitacoesPendentes: 0, empresasParceiras: 0 })
+  const [serie, setSerie] = useState<{ dia: string; receita: number; litros: number; abastecimentos: number }[]>([])
   const [periodos, setPeriodos] = useState<{ label: string; inicio: string; fim: string }[]>([])
   const [postosDesempenho, setPostosDesempenho] = useState<PostoDesempenho[]>([])
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([])
@@ -159,7 +162,8 @@ export default function PostoDashboardPage() {
         const res = await fetch('/api/posto/dashboard')
         if (!res.ok) throw new Error('Erro ao carregar dados')
         const data = await res.json()
-        setMetrics(data.metrics ?? { abastecimentosMes: 0, receitaB2B: 0, solicitacoesPendentes: 0, empresasParceiras: 0 })
+        setMetrics(data.metrics ?? { abastecimentosPeriodo: 0, receitaB2B: 0, litrosPeriodo: 0, ticketMedio: 0, solicitacoesPendentes: 0, empresasParceiras: 0 })
+        setSerie(data.serie ?? [])
         setPeriodos(data.periodos ?? [])
         setPostosDesempenho(data.postosDesempenho ?? [])
         setRecentActivity(data.recentActivity ?? [])
@@ -273,6 +277,8 @@ export default function PostoDashboardPage() {
     if (res.ok) {
       const data = await res.json()
       setPostosDesempenho(data.postosDesempenho ?? [])
+      setSerie(data.serie ?? [])
+      if (data.metrics) setMetrics(data.metrics)
     }
   }
 
@@ -280,11 +286,34 @@ export default function PostoDashboardPage() {
     c.ativo && (c.modalPreco === 'bomba' || (c.valor && parseFloat(c.valor) > 0))
   )
 
+  // Séries dos minigráficos, na mesma ordem dos cartões.
+  const serieReceita: PontoSerie[] = serie.map((d) => ({ dia: d.dia, valor: d.receita }))
+  const serieLitros:  PontoSerie[] = serie.map((d) => ({ dia: d.dia, valor: d.litros }))
+  const serieAbast:   PontoSerie[] = serie.map((d) => ({ dia: d.dia, valor: d.abastecimentos }))
+
+  // Cada cartão leva uma segunda linha de contexto: o número sozinho não diz
+  // de que período é nem com o que se compara.
   const metricsCards = [
-    { label: 'Abastecimentos (mês)', value: String(metrics.abastecimentosMes) },
-    { label: 'Receita B2B', value: formatBRL(metrics.receitaB2B) },
-    { label: 'Solicitações pendentes', value: String(metrics.solicitacoesPendentes) },
-    { label: 'Empresas parceiras', value: String(metrics.empresasParceiras) },
+    {
+      label: 'Abastecimentos', value: String(metrics.abastecimentosPeriodo),
+      contexto: `${Math.round(metrics.litrosPeriodo)} L no período`,
+      Icone: Fuel, cor: 'text-blue-600', fundo: 'bg-blue-50', serie: serieAbast,
+    },
+    {
+      label: 'Receita B2B', value: formatBRL(metrics.receitaB2B),
+      contexto: `Ticket médio: ${formatBRL(metrics.ticketMedio)}`,
+      Icone: DollarSign, cor: 'text-emerald-600', fundo: 'bg-emerald-50', serie: serieReceita,
+    },
+    {
+      label: 'Solicitações pendentes', value: String(metrics.solicitacoesPendentes),
+      contexto: metrics.solicitacoesPendentes > 0 ? 'Aguardando sua resposta' : 'Nada aguardando',
+      Icone: Inbox, cor: 'text-amber-600', fundo: 'bg-amber-50', serie: [] as PontoSerie[],
+    },
+    {
+      label: 'Empresas parceiras', value: String(metrics.empresasParceiras),
+      contexto: 'Parcerias ativas',
+      Icone: Users, cor: 'text-blue-600', fundo: 'bg-blue-50', serie: [] as PontoSerie[],
+    },
   ]
 
   return (
@@ -301,8 +330,17 @@ export default function PostoDashboardPage() {
             ))
           : metricsCards.map((m) => (
               <Card key={m.label} padding="md">
-                <p className="text-sm text-gray-500">{m.label}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{m.value}</p>
+                <div className="flex items-start gap-3">
+                  <span className={`w-9 h-9 rounded-xl ${m.fundo} flex items-center justify-center shrink-0`}>
+                    <m.Icone size={17} className={m.cor} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-gray-500 truncate">{m.label}</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-0.5 leading-tight">{m.value}</p>
+                    <p className="text-xs text-gray-400 mt-0.5 truncate">{m.contexto}</p>
+                  </div>
+                </div>
+                <div className="mt-2 -mb-1"><MiniGrafico pontos={m.serie} cor={m.cor} /></div>
               </Card>
             ))
         }
@@ -325,16 +363,27 @@ export default function PostoDashboardPage() {
 
       {/* Pending + Activity */}
       <div className="grid grid-cols-5 gap-5">
-        {/* Solicitações pendentes */}
-        <div className="col-span-3 space-y-3">
-          <h2 className="font-semibold text-gray-900">Solicitações pendentes</h2>
-          {solicitacoes.length === 0 && (
-            <Card padding="md">
-              <p className="text-sm text-gray-400 text-center py-4">Nenhuma solicitação pendente.</p>
-            </Card>
+        {/* Solicitações pendentes — um painel, igual ao de Atividade recente.
+            Antes era um <h2> solto com um card por solicitação embaixo: com
+            uma solicitação só, sobrava um cartão órfão e um vão ao lado de uma
+            coluna cheia. Agora as duas colunas são painéis do mesmo tipo,
+            alinhados pelo topo. */}
+        <Card padding="none" className="col-span-3">
+          <div className="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between gap-3">
+            <h2 className="font-semibold text-gray-900">Solicitações pendentes</h2>
+            {solicitacoes.length > 0 && (
+              <Link href="/posto/parcerias/solicitacoes" className="text-xs font-medium text-blue-600 hover:text-blue-700">
+                Ver todas ({solicitacoes.length})
+              </Link>
+            )}
+          </div>
+
+          <div className="divide-y divide-gray-50">
+          {solicitacoes.length === 0 && !loading && (
+            <p className="px-5 py-8 text-center text-sm text-gray-400">Nenhuma solicitação pendente.</p>
           )}
           {solicitacoes.map((s) => (
-            <Card key={s.id} padding="md">
+            <div key={s.id} className="px-5 py-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="mb-2"><PostoChip nome={s.posto} /></div>
@@ -350,18 +399,26 @@ export default function PostoDashboardPage() {
                   {s.valorEstimado && <p className="text-xs font-semibold text-emerald-600 mt-0.5">{s.valorEstimado}</p>}
                   {s.mensagem && <p className="text-xs text-gray-500 mt-1 italic">"{s.mensagem}"</p>}
                 </div>
-                <div className="flex gap-2 shrink-0">
-                  <Button variant="danger" size="sm" onClick={() => { setRejeitarModal(s.id); setMotivoRejeicao('') }}>
+                {/* Uma ação principal só. Rejeitar era um botão vermelho
+                    sólido, do mesmo peso do "Enviar proposta" — dois pesos
+                    iguais fazem a tela perguntar em vez de sugerir. Vermelho
+                    fica no texto, que é o suficiente para marcar o destrutivo. */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => { setRejeitarModal(s.id); setMotivoRejeicao('') }}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                  >
                     <X size={13} /> Rejeitar
-                  </Button>
+                  </button>
                   <Button size="sm" onClick={() => abrirPropostaModal(s.id)}>
                     <Send size={13} /> Enviar proposta
                   </Button>
                 </div>
               </div>
-            </Card>
+            </div>
           ))}
-        </div>
+          </div>
+        </Card>
 
         {/* Atividade recente */}
         <Card padding="none" className="col-span-2">
@@ -435,43 +492,52 @@ export default function PostoDashboardPage() {
           </div>
         </div>
 
-        {/* Ranking */}
+        {/* Cabeçalho de colunas: o ranking anterior era só barra e número
+            solto — sem dizer qual grandeza cada coluna trazia. */}
+        <div className="px-6 py-2 border-b border-gray-100 bg-gray-50/60 flex items-center gap-4 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+          <span className="w-6 shrink-0">#</span>
+          <span className="w-40 shrink-0">Posto</span>
+          <span className="w-24 shrink-0 text-right">Abast.</span>
+          <span className="w-28 shrink-0 text-right">Volume (L)</span>
+          <span className="w-32 shrink-0 text-right">Receita B2B</span>
+          <span className="flex-1 min-w-0">Participação</span>
+        </div>
+
+        {/* Linhas */}
         <div className="divide-y divide-gray-50">
           {postosDesempenho.map((p, i) => {
             const val   = p[metrica] as number
             const pct   = maxMetrica > 0 ? (val / maxMetrica) * 100 : 0
             const share = metricaTotal > 0 ? (val / metricaTotal) * 100 : 0
-            const fmtVal = metrica === 'receita'
-              ? formatBRL(val)
-              : metrica === 'litros'
-              ? `${val} L`
-              : String(val)
             const barColor = POSTO_COLORS[i % POSTO_COLORS.length]
             return (
               <div key={p.id} className="px-6 py-3.5 flex items-center gap-4 hover:bg-gray-50/60 transition-colors">
-                {/* Rank */}
                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                   i === 0 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'
                 }`}>{i + 1}</span>
 
-                {/* Nome */}
-                <div className="w-40 shrink-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">{p.label}</p>
-                  <p className="text-[11px] text-gray-400">{p.count} abast. · {p.litros} L</p>
-                </div>
+                <p className="w-40 shrink-0 text-sm font-medium text-gray-800 truncate" title={p.label}>{p.label}</p>
 
-                {/* Barra */}
-                <div className="flex-1 min-w-0">
-                  <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                {/* Uma coluna por grandeza. A métrica escolhida no seletor vem
+                    em negrito — é por ela que a tabela está ordenada. */}
+                <span className={`w-24 shrink-0 text-right text-sm tabular-nums ${metrica === 'count' ? 'font-bold text-gray-900' : 'text-gray-500'}`}>
+                  {p.count}
+                </span>
+                <span className={`w-28 shrink-0 text-right text-sm tabular-nums ${metrica === 'litros' ? 'font-bold text-gray-900' : 'text-gray-500'}`}>
+                  {Math.round(p.litros)}
+                </span>
+                <span className={`w-32 shrink-0 text-right text-sm tabular-nums ${metrica === 'receita' ? 'font-bold text-gray-900' : 'text-gray-500'}`}>
+                  {formatBRL(p.receita)}
+                </span>
+
+                <div className="flex-1 min-w-0 flex items-center gap-2.5">
+                  <div className="flex-1 min-w-0 h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div className={`h-full ${barColor} rounded-full transition-all duration-300`}
                       style={{ width: `${pct}%` }} />
                   </div>
-                </div>
-
-                {/* Valor + share */}
-                <div className="text-right shrink-0 w-36">
-                  <p className="text-sm font-bold text-gray-900">{fmtVal}</p>
-                  <p className="text-[11px] text-gray-400">{share.toFixed(1)}% da rede</p>
+                  <span className="w-11 shrink-0 text-right text-[11px] tabular-nums text-gray-400">
+                    {share.toFixed(1)}%
+                  </span>
                 </div>
               </div>
             )
@@ -485,15 +551,38 @@ export default function PostoDashboardPage() {
         </div>
 
         {/* Rodapé com totais */}
-        <div className="px-6 py-3 border-t-2 border-gray-200 bg-gray-50 flex items-center justify-between">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total da rede</span>
-          <div className="flex items-center gap-6 text-sm">
-            <span className="text-gray-500">{totalAbast} abastecimentos</span>
-            <span className="text-gray-500">{totalLitros} L</span>
-            <span className="font-bold text-gray-900">{formatBRL(totalReceita)}</span>
-          </div>
+        {/* Totais nas MESMAS colunas das linhas, para o olho somar na vertical. */}
+        <div className="px-6 py-3 border-t-2 border-gray-200 bg-gray-50 flex items-center gap-4">
+          <span className="w-6 shrink-0" />
+          <span className="w-40 shrink-0 text-xs font-semibold uppercase tracking-wide text-gray-500">Total da rede</span>
+          <span className="w-24 shrink-0 text-right text-sm tabular-nums text-gray-600">{totalAbast}</span>
+          <span className="w-28 shrink-0 text-right text-sm tabular-nums text-gray-600">{Math.round(totalLitros)}</span>
+          <span className="w-32 shrink-0 text-right text-sm font-bold tabular-nums text-gray-900">{formatBRL(totalReceita)}</span>
+          {/* Sem movimento no período não há participação a somar: "100%" de
+              zero contradiz a mensagem logo acima. */}
+          <span className="flex-1 min-w-0 text-right text-[11px] text-gray-400">
+            {metricaTotal > 0 ? '100%' : '—'}
+          </span>
         </div>
       </Card>
+
+      {/* ── Evolução no período ─────────────────────────────────── */}
+      <div className="grid grid-cols-2 gap-5">
+        <GraficoLinha
+          titulo="Faturamento B2B"
+          icone={<DollarSign size={15} className="text-emerald-600" />}
+          pontos={serieReceita}
+          formatar={formatBRL}
+          vazio="Nenhum faturamento no período"
+        />
+        <GraficoLinha
+          titulo="Volume de abastecimentos"
+          icone={<Fuel size={15} className="text-blue-600" />}
+          pontos={serieLitros}
+          formatar={(v) => `${Math.round(v)} L`}
+          vazio="Nenhum abastecimento no período"
+        />
+      </div>
 
       {/* ── Modal: Enviar Proposta (3 etapas) ──────────────────── */}
       <Modal
