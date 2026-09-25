@@ -142,8 +142,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { nome, cnpj, bandeira, endereco, numero, complemento, bairro, cidade, estado, cep, combustiveis, capacidade } = body
 
-    if (!nome || !cnpj || !endereco || !cidade || !estado) {
-      return NextResponse.json({ error: 'Campos obrigatórios: nome, cnpj, endereco, cidade, estado.' }, { status: 400 })
+    // O número entra na lista: sem ele o geocoding cai no meio da rua e o
+    // motorista não acha a bomba. A Receita costuma trazê-lo, mas vem vazio em
+    // MEI e inscrições recentes — aí quem informa é o dono do posto.
+    if (!nome || !cnpj || !endereco || !numero || !cidade || !estado) {
+      return NextResponse.json(
+        { error: 'Campos obrigatórios: nome, cnpj, endereço, número, cidade e estado.' },
+        { status: 400 },
+      )
     }
 
     // WhatsApp é o canal pelo qual a transportadora fala com o posto na Vitrine,
@@ -222,7 +228,12 @@ export async function PATCH(req: NextRequest) {
 
     if (!id) return NextResponse.json({ error: 'id obrigatório.' }, { status: 400 })
 
-    // Mesma exigência do POST: editar um posto não pode deixá-lo sem WhatsApp.
+    // Mesmas exigências do POST: editar um posto não pode deixá-lo sem número
+    // nem sem WhatsApp.
+    if (fields.numero !== undefined && !String(fields.numero).trim()) {
+      return NextResponse.json({ error: 'Informe o número do endereço.' }, { status: 400 })
+    }
+
     const whatsapp = normalizarWhatsapp(String(fields.whatsapp ?? ''))
     if (!whatsapp) {
       return NextResponse.json(
