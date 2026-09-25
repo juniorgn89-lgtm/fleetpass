@@ -72,10 +72,17 @@ function HistoricoEmpresa() {
   const [loading,  setLoading]  = useState(true)
   const [pagina,   setPagina]   = useState(1)
 
+  // Trocar filtro volta para a primeira página. Fica nos handlers, e não num
+  // efeito: em efeito isto é estado derivado e dispara render em cascata.
+  const trocarFiltro = <T,>(set: (v: T) => void) => (v: T) => { set(v); setPagina(1) }
+
   const fetchDados = useCallback(async () => {
     setLoading(true)
     const { ano, mes } = MESES[mesIdx]
-    const params = new URLSearchParams({ ano: String(ano), mes: String(mes) })
+    const params = new URLSearchParams({
+      ano: String(ano), mes: String(mes),
+      pagina: String(pagina), porPagina: String(POR_PAGINA),
+    })
     if (postoId)     params.set('postoId',     postoId)
     if (veiculoId)   params.set('veiculoId',   veiculoId)
     if (motoristaId) params.set('motoristaId', motoristaId)
@@ -85,19 +92,35 @@ function HistoricoEmpresa() {
     setDados(d.abastecimentos ?? [])
     setTotais(d.totais ?? { valor: 0, registros: 0, postos: 0 })
     setOpcoes(d.opcoes ?? { postos: [], veiculos: [], motoristas: [] })
-    setPagina(1)
     setLoading(false)
-  }, [mesIdx, postoId, veiculoId, motoristaId])
+  }, [mesIdx, postoId, veiculoId, motoristaId, pagina])
 
   useEffect(() => { fetchDados() }, [fetchDados])
 
-  const totalPaginas = Math.max(1, Math.ceil(dados.length / POR_PAGINA))
+  // `dados` agora é a página que veio do banco; a contagem do período vem de
+  // `totais.registros`, que conta o conjunto filtrado inteiro.
+  const totalRegistros = totais.registros
+  const totalPaginas = Math.max(1, Math.ceil(totalRegistros / POR_PAGINA))
   const paginaAtual  = Math.min(pagina, totalPaginas)
-  const paginados    = dados.slice((paginaAtual - 1) * POR_PAGINA, paginaAtual * POR_PAGINA)
+  const paginados    = dados
 
-  function exportarCSV() {
+  async function exportarCSV() {
+    // A lista na tela é uma página; o CSV sempre exportou o período inteiro e
+    // precisa continuar exportando — por isso a busca própria com `tudo=1`.
+    const { ano, mes } = MESES[mesIdx]
+    const params = new URLSearchParams({ ano: String(ano), mes: String(mes), tudo: '1' })
+    if (postoId)     params.set('postoId',     postoId)
+    if (veiculoId)   params.set('veiculoId',   veiculoId)
+    if (motoristaId) params.set('motoristaId', motoristaId)
+
+    let todos: Abastecimento[] = dados
+    try {
+      const res = await fetch(`/api/empresa/historico?${params}`)
+      if (res.ok) todos = (await res.json()).abastecimentos ?? dados
+    } catch { /* sem rede: exporta ao menos o que está na tela */ }
+
     const cab  = ['Código', 'Data', 'Veículo', 'Motorista', 'Posto', 'Combustível', 'Litros', 'Valor']
-    const linhas = dados.map(h => [
+    const linhas = todos.map(h => [
       h.codigo, h.data, h.veiculo, h.motorista, h.posto,
       h.combustivel, fmtLitros(h.litros), fmtValor(h.valor),
     ])
@@ -155,7 +178,7 @@ function HistoricoEmpresa() {
         <select
           className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-blue-500"
           value={mesIdx}
-          onChange={e => setMesIdx(Number(e.target.value))}
+          onChange={e => trocarFiltro(setMesIdx)(Number(e.target.value))}
         >
           {MESES.map((m, i) => (
             <option key={i} value={i} className="capitalize">{m.label}</option>
@@ -165,7 +188,7 @@ function HistoricoEmpresa() {
         <select
           className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-blue-500"
           value={postoId}
-          onChange={e => setPostoId(e.target.value)}
+          onChange={e => trocarFiltro(setPostoId)(e.target.value)}
         >
           <option value="">Todos postos</option>
           {opcoes.postos.map(p => (
@@ -176,7 +199,7 @@ function HistoricoEmpresa() {
         <select
           className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-blue-500"
           value={veiculoId}
-          onChange={e => setVeiculoId(e.target.value)}
+          onChange={e => trocarFiltro(setVeiculoId)(e.target.value)}
         >
           <option value="">Todos veículos</option>
           {opcoes.veiculos.map(v => (
@@ -187,7 +210,7 @@ function HistoricoEmpresa() {
         <select
           className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-blue-500"
           value={motoristaId}
-          onChange={e => setMotoristaId(e.target.value)}
+          onChange={e => trocarFiltro(setMotoristaId)(e.target.value)}
         >
           <option value="">Todos motoristas</option>
           {opcoes.motoristas.map(m => (
@@ -242,7 +265,7 @@ function HistoricoEmpresa() {
             {/* Paginação */}
             <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100">
               <p className="text-xs text-gray-400">
-                Exibindo {(paginaAtual - 1) * POR_PAGINA + 1}–{Math.min(paginaAtual * POR_PAGINA, dados.length)} de {dados.length} registros
+                Exibindo {totalRegistros === 0 ? 0 : (paginaAtual - 1) * POR_PAGINA + 1}–{Math.min(paginaAtual * POR_PAGINA, totalRegistros)} de {totalRegistros} registros
               </p>
               <div className="flex items-center gap-1">
                 <button
