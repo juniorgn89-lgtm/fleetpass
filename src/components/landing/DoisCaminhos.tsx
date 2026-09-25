@@ -72,7 +72,7 @@ export function DoisCaminhos() {
               </ul>
               <Link
                 href={TRANSPORTADORA.href}
-                className="mt-8 inline-flex items-center justify-center gap-2 rounded-xl bg-petrol-600 px-6 py-3.5 text-base font-semibold text-white hover:bg-petrol-700 transition-all hover:-translate-y-0.5 shadow-soft"
+                className="mt-8 inline-flex items-center justify-center gap-2 rounded-xl bg-petrol-600 px-6 py-3.5 text-base font-semibold text-white hover:bg-petrol-700 dark:hover:bg-petrol-500 transition-all hover:-translate-y-0.5 shadow-soft"
               >
                 {TRANSPORTADORA.cta} <ArrowRight size={17} />
               </Link>

@@ -151,7 +151,7 @@ function ProdutoRow({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => onArquivar(produto.id)}
-                className="text-xs px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                className="text-xs px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-500"
               >
                 Confirmar
               </button>
@@ -393,7 +393,7 @@ export default function PlanosAdminPage() {
       {/* Dica env */}
       <Card>
         <CardHeader title="Como usar o Price ID" subtitle="Plano único por CNPJ — copie o Price ID e configure no .env.local" />
-        <div className="bg-gray-900 rounded-xl p-4 font-mono text-xs text-gray-300 space-y-1">
+        <div className="bg-[#12181a] dark:bg-black/40 rounded-xl p-4 font-mono text-xs text-gray-300 dark:text-gray-400 space-y-1">
           <p><span className="text-gray-500"># Price ID do produto "padrao" (cobrança por CNPJ)</span></p>
           <p>STRIPE_PRICE_PADRAO=<span className="text-indigo-400">price_...</span></p>
         </div>

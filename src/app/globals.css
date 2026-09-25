@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* No Tailwind v4 o `dark:` segue `prefers-color-scheme` por padrão. Aqui ele
+   passa a seguir a classe `.dark` no <html>, para o usuário poder escolher. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ─────────────────────────────────────────────────────────────────────────
    Design tokens (Tailwind v4 @theme) — viram utilitários: bg-petrol-600,
    text-fuel-500, rounded-xl2, etc. Centraliza cor/raio/sombra do produto.
@@ -118,6 +122,88 @@
   --brand: #0f766e;
   --brand-hover: #115e59;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   TEMA ESCURO — por token, não por classe em cada elemento.
+
+   São ~1500 usos de cor clara fixa em 83 arquivos. Anotar `dark:` em cada um
+   seria um mês de trabalho e um convite a esquecer metade. Como todo
+   utilitário do Tailwind v4 compila para `var(--color-…)`, redefinir os
+   tokens aqui vira o app inteiro de uma vez — o mesmo mecanismo que já
+   reveste `blue-*` de petróleo lá em cima.
+
+   Três regras guiaram os valores:
+
+   1. A ESCALA DE CINZA INVERTE. Medido no código: os degraus escuros
+      (600–900) aparecem 827 vezes, quase todas como TEXTO, e só 4 vezes como
+      fundo ou borda. Esses 4 estão tratados à mão.
+   2. NAS CORES DE MARCA, só as PONTAS viram. 50/100 (fundos de selo) ficam
+      escuros e 700–950 (texto sobre esses selos) ficam claros. 200–600 não
+      mudam, senão os botões sólidos — `bg-blue-600` com `text-white` — ficariam
+      ilegíveis. `text-X-700` tem 196 usos contra 13 de `hover:bg-X-700`; os 13
+      estão corrigidos no código.
+   3. `--color-white` NÃO vira. Ele serve `text-white` (102 usos, quase todos
+      sobre botão colorido) e as transparências `bg-white/10` da landing. A
+      superfície clara é trocada pelo utilitário `.bg-white` logo abaixo.
+   ───────────────────────────────────────────────────────────────────────── */
+.dark {
+  /* Cinza invertido, com um leve viés esverdeado para casar com a marca */
+  --color-gray-50:  #12181a;
+  --color-gray-100: #1d2427;
+  --color-gray-200: #2a3336;
+  --color-gray-300: #3b4649;
+  --color-gray-400: #8a9699;
+  --color-gray-500: #a3aeb1;
+  --color-gray-600: #c2cbcd;
+  --color-gray-700: #d7dee0;
+  --color-gray-800: #e8edee;
+  --color-gray-900: #f5f8f8;
+  --color-gray-950: #ffffff;
+
+  /* Petróleo — 200 a 600 intactos (botões sólidos) */
+  --color-petrol-50:  #06221f;
+  --color-petrol-100: #0a322d;
+  --color-petrol-700: #5eead4;
+  --color-petrol-800: #99f6e4;
+  --color-petrol-900: #ccfbf1;
+  --color-petrol-950: #f0fdfa;
+
+  /* Âmbar */
+  --color-fuel-50:  #2a1c02;
+  --color-fuel-100: #3d2905;
+  --color-fuel-700: #fcd34d;
+  --color-fuel-800: #fde68a;
+  --color-fuel-900: #fef3c7;
+  --color-fuel-950: #fffbeb;
+
+  /* Status — emerald e red não são remapeados no @theme, então vão aqui */
+  --color-emerald-50:  #052e1d;
+  --color-emerald-100: #06402a;
+  --color-emerald-700: #6ee7b7;
+  --color-emerald-800: #a7f3d0;
+  --color-emerald-900: #d1fae5;
+
+  --color-red-50:  #3b0d0d;
+  --color-red-100: #4f1212;
+  --color-red-700: #fca5a5;
+  --color-red-800: #fecaca;
+  --color-red-900: #fee2e2;
+
+  --color-ink:  #f5f8f8;
+  --color-sand: #12181a;
+
+  /* A sombra clara some no escuro; o que separa as camadas é a borda */
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.30), 0 8px 30px rgb(0 0 0 / 0.35);
+}
+
+/* Superfície dos cards. `bg-white` precisa escurecer, mas `--color-white` não
+   pode virar (ver regra 3), então a troca é no utilitário. A especificidade
+   de `.dark .bg-white` (0,2,0) ganha de `.bg-white` (0,1,0) sem !important. */
+.dark .bg-white { background-color: #1a2123; }
+.dark .hover\:bg-white:hover { background-color: #1d2427; }
+
+.dark body { background: #12181a; }
+.dark ::selection { background: var(--color-petrol-800); color: var(--color-petrol-50); }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }

@@ -150,7 +150,7 @@ export default function RequisicaoMotoristaPage({
           {scanState === 'idle' && (
             <button
               onClick={handleScan}
-              className="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold text-sm rounded-2xl h-14 flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-300"
+              className="w-full bg-blue-600 hover:bg-blue-700 dark:hover:bg-petrol-500 active:scale-95 text-white font-semibold text-sm rounded-2xl h-14 flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-300"
             >
               <QrCode size={18} /> Escanear QR Code do Frentista
             </button>

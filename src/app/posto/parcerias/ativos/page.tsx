@@ -607,7 +607,7 @@ export default function ParceirosAtivosPage() {
         const motivo = motivoSel === 'Outro' ? motivoCustom.trim() : motivoSel
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="fixed top-0 left-0 w-screen h-screen bg-gray-900/60 backdrop-blur-sm" onClick={() => setBloqueioModal(null)} />
+            <div className="fixed top-0 left-0 w-screen h-screen bg-black/60 backdrop-blur-sm" onClick={() => setBloqueioModal(null)} />
             <div className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <div className="flex items-center gap-2">
@@ -666,7 +666,7 @@ export default function ParceirosAtivosPage() {
                 <button
                   onClick={confirmarBloqueio}
                   disabled={!motivo}
-                  className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 dark:hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <Lock size={13} /> Confirmar bloqueio
                 </button>

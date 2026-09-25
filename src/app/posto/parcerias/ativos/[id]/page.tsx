@@ -716,7 +716,7 @@ export default function ContratoPostoPage({ params }: { params: Promise<{ id: st
                 />
                 <button
                   onClick={addEmail}
-                  className="flex items-center gap-1 text-xs bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex items-center gap-1 text-xs bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-petrol-500 transition-colors"
                 >
                   <Plus size={12} /> Adicionar
                 </button>
@@ -766,7 +766,7 @@ export default function ContratoPostoPage({ params }: { params: Promise<{ id: st
                 />
                 <button
                   onClick={addWa}
-                  className="flex items-center gap-1 text-xs bg-emerald-600 text-white px-3 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+                  className="flex items-center gap-1 text-xs bg-emerald-600 text-white px-3 py-2 rounded-lg hover:bg-emerald-700 dark:hover:bg-emerald-500 transition-colors"
                 >
                   <Plus size={12} /> Adicionar
                 </button>

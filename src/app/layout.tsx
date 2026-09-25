@@ -18,9 +18,28 @@ export const metadata: Metadata = {
   },
 }
 
+/**
+ * Pinta o tema ANTES do primeiro paint.
+ *
+ * Sem isto a página nasce clara e escurece quando o React monta — o "flash"
+ * branco que denuncia tema mal implementado. O script é minúsculo, síncrono e
+ * roda antes do body; a chave é a mesma de `src/lib/tema.ts`.
+ */
+const SCRIPT_TEMA = `
+(function(){try{
+  var m = localStorage.getItem('fleetpass-tema') || 'sistema';
+  var escuro = m === 'escuro' || (m === 'sistema' &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches);
+  if (escuro) document.documentElement.classList.add('dark');
+}catch(e){}})();
+`
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
+      </head>
       <body className={`${inter.variable} ${mono.variable} font-sans`}>{children}</body>
     </html>
   )

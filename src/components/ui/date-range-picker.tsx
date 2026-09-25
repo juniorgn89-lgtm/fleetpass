@@ -276,7 +276,7 @@ export function DateRangePicker({ value, onChange, className }: Props) {
                 type="button"
                 onClick={handleApply}
                 disabled={!!error || !draft.inicio || !draft.fim}
-                className="flex-1 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+                className="flex-1 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-petrol-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-medium"
               >
                 Aplicar
               </button>

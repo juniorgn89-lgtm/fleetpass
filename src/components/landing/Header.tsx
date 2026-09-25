@@ -27,7 +27,7 @@ export function Header() {
   return (
     <header
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/85 backdrop-blur-md border-b border-petrol-100 shadow-soft' : 'bg-transparent'
+        scrolled ? 'bg-white/85 dark:bg-[#12181a]/85 backdrop-blur-md border-b border-petrol-100 shadow-soft' : 'bg-transparent'
       }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
@@ -59,7 +59,7 @@ export function Header() {
           </Link>
           <Link
             href={LINKS.transportadora}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-petrol-600 rounded-xl hover:bg-petrol-700 transition-colors shadow-soft"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-petrol-600 rounded-xl hover:bg-petrol-700 dark:hover:bg-petrol-500 transition-colors shadow-soft"
           >
             <Truck size={15} /> Sou Transportadora
           </Link>
@@ -110,7 +110,7 @@ export function Header() {
             <Link
               href={LINKS.transportadora}
               onClick={() => setOpen(false)}
-              className="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-petrol-600 rounded-xl hover:bg-petrol-700 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-petrol-600 rounded-xl hover:bg-petrol-700 dark:hover:bg-petrol-500 transition-colors"
             >
               <Truck size={16} /> Sou Transportadora <ArrowRight size={15} />
             </Link>

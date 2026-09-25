@@ -11,10 +11,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
+  // hover:bg-blue-700 só serve no claro: no escuro o degrau 700 é a cor de
+  // TEXTO dos selos (quase branca). Ver a regra 2 em globals.css.
+  primary: 'bg-blue-600 text-white hover:bg-blue-700 dark:hover:bg-petrol-500 focus:ring-blue-500',
   secondary: 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 focus:ring-gray-300',
   ghost: 'text-gray-600 hover:bg-gray-100 focus:ring-gray-300',
   danger: 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-400',
+  // secondary usa bg-white, que o .dark troca por superfície escura.
 }
 
 const sizeStyles: Record<ButtonSize, string> = {

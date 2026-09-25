@@ -244,7 +244,7 @@ export function NegociacaoPainel({ solicitacaoId, onAceitar, onRevisarProposta }
             <button
               onClick={enviar}
               disabled={!texto.trim() || sending}
-              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-petrol-500 disabled:opacity-50 transition-colors"
             >
               {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
             </button>
@@ -324,7 +324,7 @@ function PropostaCard({
         <button
           onClick={onAceitar}
           disabled={aceitando}
-          className="mt-2 w-full flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-semibold text-white bg-emerald-600 rounded-md hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+          className="mt-2 w-full flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-semibold text-white bg-emerald-600 rounded-md hover:bg-emerald-700 dark:hover:bg-emerald-500 disabled:opacity-50 transition-colors"
         >
           {aceitando ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
           Aceitar esta versão

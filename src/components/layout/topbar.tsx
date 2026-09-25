@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useNotificacoes } from '@/hooks/use-notificacoes'
+import { SeletorTema } from '@/components/ui/seletor-tema'
 
 interface TopbarProps {
   breadcrumb?: { label: string; href?: string }[]
@@ -49,7 +50,9 @@ export function Topbar({ breadcrumb = [] }: TopbarProps) {
       </nav>
 
       {/* Right side */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1">
+        <SeletorTema />
+
         {/* Notifications */}
         <div className="relative">
           <button

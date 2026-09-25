@@ -82,7 +82,7 @@ export function Hero() {
           <motion.div variants={item} className="mt-8 flex flex-col sm:flex-row gap-3">
             <Link
               href={LINKS.transportadora}
-              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-petrol-600 px-6 py-3.5 text-base font-semibold text-white shadow-soft hover:bg-petrol-700 transition-all hover:-translate-y-0.5"
+              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-petrol-600 px-6 py-3.5 text-base font-semibold text-white shadow-soft hover:bg-petrol-700 dark:hover:bg-petrol-500 transition-all hover:-translate-y-0.5"
             >
               <Truck size={18} /> Sou Transportadora
               <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
@@ -185,7 +185,7 @@ function CardsDaCena() {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.55, ease }}
-        className="absolute bottom-[2%] left-[20%] w-[26%] max-w-[13rem] rounded-xl2 z-10 bg-white/95 backdrop-blur border border-petrol-100 shadow-soft p-3.5"
+        className="absolute bottom-[2%] left-[20%] w-[26%] max-w-[13rem] rounded-xl2 z-10 bg-white/95 dark:bg-[#1a2123]/95 backdrop-blur border border-petrol-100 shadow-soft p-3.5"
       >
         <div className="flex items-center justify-between">
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-fuel-600">
@@ -207,7 +207,7 @@ function CardsDaCena() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.75, ease }}
-        className="absolute bottom-[29%] left-[58%] rounded-xl2 z-10 bg-white/95 backdrop-blur border border-petrol-100 shadow-soft px-3 py-2 flex items-center gap-2"
+        className="absolute bottom-[29%] left-[58%] rounded-xl2 z-10 bg-white/95 dark:bg-[#1a2123]/95 backdrop-blur border border-petrol-100 shadow-soft px-3 py-2 flex items-center gap-2"
       >
         <span className="w-7 h-7 rounded-lg bg-fuel-50 flex items-center justify-center shrink-0">
           <ShieldCheck size={15} className="text-fuel-600" />

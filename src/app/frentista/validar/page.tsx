@@ -462,7 +462,9 @@ export default function ValidarPage() {
               </p>
             </div>
             <div className="flex flex-col items-center gap-3 py-2">
-              <div className="p-4 bg-white border-2 border-gray-900 rounded-2xl shadow-sm">
+              {/* Branco literal, não a superfície do tema: no escuro o QR
+                  ficaria preto sobre escuro e a câmera não leria. */}
+              <div className="p-4 bg-[#ffffff] border-2 border-gray-900 dark:border-white/20 rounded-2xl shadow-sm">
                 {qrUrl && <QRCodeCanvas value={qrUrl} size={190} />}
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
