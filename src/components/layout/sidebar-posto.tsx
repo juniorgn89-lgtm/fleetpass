@@ -9,7 +9,7 @@ import Link from 'next/link'
 import { Logo } from '@/components/ui/logo'
 import { usePathname } from 'next/navigation'
 import { useParceriasPendencias } from '@/hooks/use-parcerias-pendencias'
-import { usePerfilAtual } from '@/hooks/use-perfil-atual'
+import { MenuPerfil } from '@/components/layout/menu-perfil'
 
 interface NavItem {
   label: string
@@ -72,7 +72,6 @@ const navSections: NavSection[] = [
 export function SidebarPosto() {
   const pathname = usePathname()
   const pendencias = useParceriasPendencias()
-  const { perfil } = usePerfilAtual()
 
   const isActive = (href: string) => {
     if (href === '/posto') return pathname === '/posto'
@@ -129,24 +128,7 @@ export function SidebarPosto() {
         ))}
       </nav>
 
-      <div className="px-3 py-3 border-t border-gray-100">
-        <Link
-          href="/posto/perfil"
-          className={cn(
-            'flex items-center gap-3 px-3 py-2 rounded-xl transition-colors group',
-            pathname.startsWith('/posto/perfil') ? 'bg-blue-50' : 'hover:bg-gray-50'
-          )}
-        >
-          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center shrink-0">
-            <span className="text-xs font-bold text-white uppercase">{perfil?.iniciais ?? '·'}</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className={cn('text-sm font-medium truncate', pathname.startsWith('/posto/perfil') ? 'text-blue-700' : 'text-gray-700')}>{perfil?.nome ?? '…'}</p>
-            <p className="text-[11px] text-gray-400 truncate">Ver perfil</p>
-          </div>
-        </Link>
-      </div>
-
+      <MenuPerfil />
     </aside>
   )
 }

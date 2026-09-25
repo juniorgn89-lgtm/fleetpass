@@ -8,7 +8,7 @@ import {
 import Link from 'next/link'
 import { Logo } from '@/components/ui/logo'
 import { usePathname } from 'next/navigation'
-import { usePerfilAtual } from '@/hooks/use-perfil-atual'
+import { MenuPerfil } from '@/components/layout/menu-perfil'
 
 interface NavItem {
   label: string
@@ -28,7 +28,6 @@ const navItems: NavItem[] = [
 
 export function SidebarAdmin() {
   const pathname = usePathname()
-  const { perfil } = usePerfilAtual()
 
   const isActive = (href: string) => {
     if (href === '/admin') return pathname === '/admin'
@@ -67,28 +66,7 @@ export function SidebarAdmin() {
         ))}
       </nav>
 
-      <div className="px-3 py-3 border-t border-gray-100">
-        <Link
-          href="/admin/perfil"
-          className={cn(
-            'flex items-center gap-3 px-3 py-2 rounded-xl transition-colors group',
-            pathname.startsWith('/admin/perfil') ? 'bg-indigo-50' : 'hover:bg-gray-50'
-          )}
-        >
-          <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center shrink-0">
-            <span className="text-xs font-bold text-white uppercase">{perfil?.iniciais ?? '·'}</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className={cn(
-              'text-sm font-medium truncate',
-              pathname.startsWith('/admin/perfil') ? 'text-indigo-700' : 'text-gray-700'
-            )}>
-              {perfil?.nome ?? '…'}
-            </p>
-            <p className="text-[11px] text-gray-400 truncate">Ver perfil</p>
-          </div>
-        </Link>
-      </div>
+      <MenuPerfil />
     </aside>
   )
 }
