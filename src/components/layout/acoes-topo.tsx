@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useNotificacoes } from '@/hooks/use-notificacoes'
 import { SeletorTema } from '@/components/ui/seletor-tema'
+import { AppLauncher } from '@/components/layout/app-launcher'
 
 /**
  * Cluster de ações do topo — tema e notificações.
@@ -33,18 +34,17 @@ export function AcoesTopo() {
   const { items, naoLidas, marcarLida, marcarTodasLidas } = useNotificacoes()
 
   return (
-    <div className="flex items-center gap-1">
-        <SeletorTema />
+    <div className="flex items-center gap-2">
 
         {/* Notifications */}
         <div className="relative">
           <button
             onClick={() => setNotifOpen(!notifOpen)}
-            className="relative p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+            className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
           >
-            <Bell size={18} />
+            <Bell size={16} />
             {naoLidas > 0 && (
-              <span className="absolute top-1 right-1 min-w-[16px] h-[16px] px-1 text-[9px] font-bold text-white bg-red-500 rounded-full flex items-center justify-center">
+              <span className="absolute top-0.5 right-0.5 min-w-[15px] h-[15px] px-1 text-[9px] font-bold text-white bg-red-500 rounded-full flex items-center justify-center">
                 {naoLidas > 9 ? '9+' : naoLidas}
               </span>
             )}
@@ -97,6 +97,12 @@ export function AcoesTopo() {
             </>
           )}
         </div>
+
+        {/* Tema e launcher fecham o cluster, nesta ordem — é como o Header
+            do Visor360 termina. Os extras de cada app (lá: demonstração,
+            potencial, atualizar, instalar; aqui: o sino) vêm antes. */}
+        <SeletorTema />
+        <AppLauncher />
     </div>
   )
 }

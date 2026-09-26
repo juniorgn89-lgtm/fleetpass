@@ -49,9 +49,9 @@ export function SeletorTema() {
         aria-expanded={aberto}
         aria-label="Alterar tema"
         title="Alterar tema"
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
       >
-        <Atual size={17} />
+        <Atual size={16} />
       </button>
 
       {aberto && (
