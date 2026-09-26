@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { FileText, Plus, X, MapPin, Check, AlertCircle, Store, Loader2, FileSignature, MessageCircle } from 'lucide-react'
+import { ModalPostoParceiro } from '@/components/empresa/modal-posto-parceiro'
 import { NegociacaoPainel } from '@/components/parcerias/negociacao-painel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -115,6 +116,9 @@ function PostoChip({ nome }: { nome: string }) {
 
 export default function ParceriasPage() {
   const [tab, setTab] = useState('ativas')
+  // Guarda o id da PARCERIA, não o do posto: é por ela que a rota valida o
+  // acesso. null = modal fechado, e com ele o mapa nem é baixado.
+  const [postoModal, setPostoModal] = useState<string | null>(null)
 
   const [ativas, setAtivas] = useState<Ativa[]>([])
   const [aguardandoAssinatura, setAguardandoAssinatura] = useState<AguardandoAssinatura[]>([])
@@ -368,6 +372,9 @@ export default function ParceriasPage() {
                       <FileText size={13} /> Ver contrato
                     </Button>
                   </Link>
+                  <Button variant="secondary" size="sm" onClick={() => setPostoModal(p.id)}>
+                    <MapPin size={13} /> Ver posto
+                  </Button>
                   <Link href="/empresa/requisicoes/nova">
                     <Button size="sm">
                       <Plus size={13} /> Criar requisição
@@ -694,6 +701,10 @@ export default function ParceriasPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Montado só com o id preenchido: enquanto o modal está fechado, o
+          componente nem existe e o Leaflet não é baixado. */}
+      <ModalPostoParceiro parceriaId={postoModal} onClose={() => setPostoModal(null)} />
     </div>
   )
 }
