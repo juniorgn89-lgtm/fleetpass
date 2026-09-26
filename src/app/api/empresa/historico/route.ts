@@ -62,7 +62,14 @@ export async function GET(req: NextRequest) {
           'id, codigo, data, combustivel, litros, valor, veiculos(id, placa, modelo), motoristas(id, nome), postos(id, nome)',
           { count: 'exact' },
         ),
-      ).order('data', { ascending: false }).range(tudo ? 0 : de, tudo ? 99999 : ate),
+      )
+        // `data` é TIMESTAMPTZ e não é único. Sem um segundo critério, a ordem
+        // entre linhas do mesmo instante fica indefinida — e com paginação isso
+        // permite a mesma linha cair em duas páginas, ou em nenhuma. O `id`
+        // desempata e torna a ordenação total.
+        .order('data', { ascending: false })
+        .order('id', { ascending: false })
+        .range(tudo ? 0 : de, tudo ? 99999 : ate),
 
       // 2. Agregados do conjunto filtrado INTEIRO. Duas colunas, sem join —
       //    é o que mantém "total do período" correto com a lista paginada.
