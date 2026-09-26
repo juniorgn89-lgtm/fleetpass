@@ -1,7 +1,7 @@
 'use client'
 
 import { SidebarPosto } from '@/components/layout/sidebar-posto'
-import { Topbar } from '@/components/layout/topbar'
+import { AppShell } from '@/components/layout/app-shell'
 import { usePathname } from 'next/navigation'
 
 function useBreadcrumb() {
@@ -35,14 +35,8 @@ export default function PostoLayout({ children }: { children: React.ReactNode })
   const breadcrumb = useBreadcrumb()
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 print:block print:h-auto print:overflow-visible print:bg-white">
-      <div className="print:hidden"><SidebarPosto /></div>
-      <div className="flex-1 flex flex-col min-w-0">
-        <div className="print:hidden"><Topbar breadcrumb={breadcrumb} /></div>
-        <main className="flex-1 overflow-y-auto p-6 print:overflow-visible print:p-0">
-          {children}
-        </main>
-      </div>
-    </div>
+    <AppShell sidebar={<SidebarPosto />} breadcrumb={breadcrumb}>
+      {children}
+    </AppShell>
   )
 }

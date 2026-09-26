@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { PanelLeft, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Logo } from '@/components/ui/logo'
 import { MenuPerfil } from '@/components/layout/menu-perfil'
 
 /**
@@ -183,18 +182,14 @@ export function SidebarShell({ secoes, raiz }: Props) {
       onMouseEnter={aoEntrar}
       onMouseLeave={aoSair}
       className={cn(
-        'h-full bg-white border-r border-gray-100 flex flex-col shrink-0 overflow-visible',
+        'h-full bg-white dark:bg-[#0c1214] border-r border-gray-200 flex flex-col shrink-0 overflow-visible',
         '[transition:width_220ms_cubic-bezier(0.4,0,0.2,1)]',
-        expandida ? 'w-64' : 'w-16',
+        expandida ? 'w-52' : 'w-14',
       )}
     >
-      <div className={cn('h-16 border-b border-gray-100 flex items-center shrink-0', larga ? 'px-6' : 'justify-center')}>
-        <Link href="/" className="flex items-center" aria-label="FleetPass — início">
-          <Logo tamanho={30} texto={larga} />
-        </Link>
-      </div>
-
-      <nav className="flex-1 px-2 py-4 overflow-y-auto overflow-x-visible">
+      {/* Sem cabeçalho de logo: ela vive na barra de topo, fora do menu que
+          recolhe — é o arranjo do Visor360. */}
+      <nav className="flex-1 px-2 py-3 overflow-y-auto overflow-x-visible">
         {secoes.map((secao, i) => (
           <div key={secao.titulo ?? `secao-${i}`} className={cn(i > 0 && 'mt-4')}>
             {/* Recolhida, o título da seção não cabe: vira um filete divisor. */}
@@ -221,14 +216,19 @@ export function SidebarShell({ secoes, raiz }: Props) {
                       className={cn(
                         'relative flex h-9 w-full items-center rounded-lg transition-colors',
                         estaAtivo
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                          ? 'bg-blue-50 text-blue-800 font-medium dark:bg-white/10'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/5',
                       )}
                     >
+                      {/* Barra do item ativo — encosta na borda esquerda do
+                          botão e alinha com o início do rótulo. */}
+                      {estaAtivo && (
+                        <span aria-hidden className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r bg-blue-600" />
+                      )}
                       {/* Coluna fixa do ícone: ele fica na MESMA posição
                           recolhida ou expandida, então a animação de largura
                           não faz os ícones dançarem. */}
-                      <span className="flex h-9 w-12 shrink-0 items-center justify-center">
+                      <span className="flex h-9 w-10 shrink-0 items-center justify-center">
                         <item.icon size={17} />
                       </span>
                       {larga && <span className="flex-1 text-sm">{item.label}</span>}
@@ -302,7 +302,7 @@ export function SidebarShell({ secoes, raiz }: Props) {
         <span
           role="tooltip"
           style={{ top: dica.topo }}
-          className="pointer-events-none fixed left-16 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg dark:bg-gray-200 dark:text-gray-900"
+          className="pointer-events-none fixed left-14 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg dark:bg-gray-200 dark:text-gray-900"
         >
           {dica.texto}
         </span>

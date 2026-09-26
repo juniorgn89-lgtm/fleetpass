@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { SidebarAdmin } from '@/components/layout/sidebar-admin'
-import { Topbar } from '@/components/layout/topbar'
+import { AppShell } from '@/components/layout/app-shell'
 import { supabase } from '@/lib/supabase'
 import { Loader2 } from 'lucide-react'
 
@@ -77,14 +77,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      <SidebarAdmin />
-      <div className="flex-1 flex flex-col min-w-0">
-        <Topbar breadcrumb={breadcrumb} />
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
-        </main>
-      </div>
-    </div>
+    <AppShell sidebar={<SidebarAdmin />} breadcrumb={breadcrumb}>
+      {children}
+    </AppShell>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { SidebarFrentista } from '@/components/layout/sidebar-frentista'
-import { Topbar } from '@/components/layout/topbar'
+import { AppShell } from '@/components/layout/app-shell'
 import { usePathname } from 'next/navigation'
 
 function useBreadcrumb() {
@@ -25,14 +25,8 @@ export default function FreentistaLayout({ children }: { children: React.ReactNo
   const breadcrumb = useBreadcrumb()
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      <SidebarFrentista />
-      <div className="flex-1 flex flex-col min-w-0">
-        <Topbar breadcrumb={breadcrumb} />
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
-        </main>
-      </div>
-    </div>
+    <AppShell sidebar={<SidebarFrentista />} breadcrumb={breadcrumb}>
+      {children}
+    </AppShell>
   )
 }
