@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Logo } from '@/components/ui/logo'
 import { Topbar } from '@/components/layout/topbar'
 import { AcoesTopo } from '@/components/layout/acoes-topo'
+import { AvisoAtualizacao } from '@/components/feedback/aviso-atualizacao'
 
 /**
  * Casca da aplicação — mesma arquitetura do AppLayout do Visor360.
@@ -56,6 +57,10 @@ export function AppShell({
           </main>
         </div>
       </div>
+
+      {/* Aviso de versão nova e tela de atualização. Vive na casca autenticada,
+          então nunca aparece na landing nem no login. */}
+      <AvisoAtualizacao />
     </div>
   )
 }

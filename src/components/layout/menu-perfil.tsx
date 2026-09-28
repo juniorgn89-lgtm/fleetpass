@@ -7,6 +7,7 @@ import { LogOut, Settings, User, ChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { usePerfilAtual, limparPerfilAtual } from '@/hooks/use-perfil-atual'
+import { SobreVersao } from '@/components/feedback/sobre-versao'
 
 /**
  * Botão de conta no rodapé da sidebar — mesmo padrão do Visor360.
@@ -41,7 +42,6 @@ export function MenuPerfil({ compacto = false }: { compacto?: boolean }) {
   const email    = perfil?.email ?? '—'
   const iniciais = perfil?.iniciais ?? '·'
   const rotas    = ROTAS[perfil?.role ?? ''] ?? {}
-  const temItens = !!(rotas.perfil || rotas.config)
 
   // Fecha ao clicar fora
   useEffect(() => {
@@ -133,7 +133,9 @@ export function MenuPerfil({ compacto = false }: { compacto?: boolean }) {
               </Link>
             )}
 
-            {temItens && <div className="my-1 border-t border-gray-100" />}
+            <SobreVersao variante="menu" />
+
+            <div className="my-1 border-t border-gray-100" />
 
             <button role="menuitem" onClick={sair} className={ITEM}>
               <LogOut className="h-4 w-4 text-gray-500" /> Sair

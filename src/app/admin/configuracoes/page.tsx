@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { SobreVersao } from '@/components/feedback/sobre-versao'
 import { Card, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -166,6 +167,12 @@ export default function ConfiguracoesAdminPage() {
           ))}
         </div>
       </Card>
+
+      {/* Sobre — versão instalada e o histórico de novidades. */}
+      <div className="space-y-2">
+        <h2 className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Sobre</h2>
+        <SobreVersao />
+      </div>
     </div>
   )
 }

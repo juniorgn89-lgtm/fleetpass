@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { SobreVersao } from '@/components/feedback/sobre-versao'
 import {
   User, Store, CreditCard, Bell, Shield, ChevronRight,
   AlertCircle, Mail, Phone,
@@ -434,6 +435,12 @@ export default function ConfiguracoesPage() {
           )}
 
         </div>
+      </div>
+
+      {/* Sobre — versão instalada e o histórico de novidades. */}
+      <div className="space-y-2">
+        <h2 className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Sobre</h2>
+        <SobreVersao />
       </div>
     </div>
   )
