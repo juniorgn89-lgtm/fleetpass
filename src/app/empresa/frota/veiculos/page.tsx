@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react'
 import {
   Plus, Pencil, Trash2, Search, Gauge, Loader2, AlertCircle,
-  ChevronRight, ChevronLeft, Lock, LockOpen, Wrench, History,
+  ChevronRight, ChevronLeft, Lock, LockOpen, Wrench, History, Truck, Fuel, X, Eye,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Modal } from '@/components/ui/modal'
+// Iniciais do avatar: o mesmo critério do menu de conta, não uma segunda cópia.
+import { iniciaisDe } from '@/hooks/use-perfil-atual'
+import { ModalVeiculo } from '@/components/empresa/modal-veiculo'
 import { Input } from '@/components/ui/input'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -50,6 +53,31 @@ const FORM_VAZIO = {
 
 const STEPS = ['Identificação', 'Combustível', 'Configurações']
 
+/**
+ * Situação exibida na tabela.
+ *
+ * "Em manutenção" não é um status no banco: `veiculos.status` só tem
+ * 'ativo' e 'inativo'. Manutenção é um BLOQUEIO com
+ * `bloqueio_tipo = 'manutencao'`. Aqui os dois campos viram um rótulo só,
+ * que é como o usuário pensa a frota.
+ *
+ * 'inativo' não entra na lista: a rota já filtra `status = 'ativo'` — remover
+ * um veículo é baixa lógica, e ele some da tela. Oferecer esse filtro daria
+ * uma opção que nunca casa com nada.
+ */
+type Situacao = 'ativo' | 'manutencao' | 'bloqueado'
+
+function situacaoDe(v: Veiculo): Situacao {
+  if (v.bloqueado) return v.bloqueioTipo === 'manutencao' ? 'manutencao' : 'bloqueado'
+  return 'ativo'
+}
+
+const SITUACAO: Record<Situacao, { rotulo: string; classe: string; ponto: string }> = {
+  ativo:      { rotulo: 'Ativo',         classe: 'bg-emerald-50 text-emerald-700 border-emerald-200', ponto: 'bg-emerald-500' },
+  manutencao: { rotulo: 'Em manutenção', classe: 'bg-amber-50 text-amber-700 border-amber-200',       ponto: 'bg-amber-500' },
+  bloqueado:  { rotulo: 'Bloqueado',     classe: 'bg-red-50 text-red-700 border-red-200',             ponto: 'bg-red-500' },
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatPlaca(raw: string): string {
@@ -78,8 +106,17 @@ export default function VeiculosPage() {
   const [loading,    setLoading]    = useState(true)
   const [error,      setError]      = useState<string | null>(null)
 
-  const [search,     setSearch]     = useState('')
-  const [fuelFilter, setFuelFilter] = useState('')
+  const [search,      setSearch]      = useState('')
+  const [fuelFilter,  setFuelFilter]  = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  // Seleção só prepara a interface: não há ação em massa implementada, então
+  // nada é feito com ela além de marcar as linhas.
+  const [selecionados, setSelecionados] = useState<Set<string>>(new Set())
+  const [pagina, setPagina] = useState(1)
+  // Detalhe do veículo: guarda o objeto que a listagem já tem em memória, então
+  // abrir não custa consulta nenhuma.
+  const [detalhe, setDetalhe] = useState<Veiculo | null>(null)
+  const [porPagina, setPorPagina] = useState(10)
 
   // Cadastro / edição
   const [modalOpen,  setModalOpen]  = useState(false)
@@ -289,49 +326,149 @@ export default function VeiculosPage() {
 
   // ── Filtro ─────────────────────────────────────────────────────────────────
 
+  // Filtros combinam: busca E combustível E situação. A busca passou a cobrir
+  // o motorista também. Marca ficou de fora porque não existe no cadastro.
   const filtered = veiculos.filter(v => {
-    const q = search.toLowerCase()
-    return (
-      (!q || v.placa.toLowerCase().includes(q) || v.modelo.toLowerCase().includes(q)) &&
-      (!fuelFilter || v.combustivel === fuelFilter)
-    )
+    const q = search.trim().toLowerCase()
+    const casaBusca = !q
+      || v.placa.toLowerCase().includes(q)
+      || v.modelo.toLowerCase().includes(q)
+      || (v.motoristaNome ?? '').toLowerCase().includes(q)
+    return casaBusca
+      && (!fuelFilter || v.combustivel === fuelFilter)
+      && (!statusFilter || situacaoDe(v) === statusFilter)
+  })
+
+  const temFiltro = !!(search.trim() || fuelFilter || statusFilter)
+  const limparFiltros = () => { setSearch(''); setFuelFilter(''); setStatusFilter(''); setPagina(1) }
+
+  /**
+   * KPIs a partir da lista JÁ CARREGADA — nenhuma consulta a mais.
+   * Os combustíveis saem dos veículos que existem, não de uma lista fixa:
+   * se a frota não tem GNV, GNV não vira um cartão zerado.
+   */
+  const porCombustivel = veiculos.reduce<Record<string, number>>((acc, v) => {
+    if (v.combustivel) acc[v.combustivel] = (acc[v.combustivel] ?? 0) + 1
+    return acc
+  }, {})
+  const emManutencao = veiculos.filter(v => situacaoDe(v) === 'manutencao').length
+
+  // Paginação sobre o conjunto filtrado.
+  const totalPaginas = Math.max(1, Math.ceil(filtered.length / porPagina))
+  const paginaAtual  = Math.min(pagina, totalPaginas)
+  const visiveis     = filtered.slice((paginaAtual - 1) * porPagina, paginaAtual * porPagina)
+
+  const idsVisiveis = visiveis.map(v => v.id)
+  const todosMarcados = idsVisiveis.length > 0 && idsVisiveis.every(id => selecionados.has(id))
+  const alternarTodos = () => setSelecionados(prev => {
+    const proximo = new Set(prev)
+    if (todosMarcados) idsVisiveis.forEach(id => proximo.delete(id))
+    else idsVisiveis.forEach(id => proximo.add(id))
+    return proximo
+  })
+  const alternarUm = (id: string) => setSelecionados(prev => {
+    const proximo = new Set(prev)
+    if (proximo.has(id)) proximo.delete(id); else proximo.add(id)
+    return proximo
   })
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Veículos</h1>
-          <p className="text-gray-500 text-sm">
-            {loading ? 'Carregando...' : `${veiculos.length} veículo${veiculos.length !== 1 ? 's' : ''} cadastrado${veiculos.length !== 1 ? 's' : ''}`}
-          </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3">
+          <span className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+            <Truck size={19} className="text-blue-600" />
+          </span>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Veículos</h1>
+            <p className="text-gray-500 text-sm">Gerencie todos os veículos da sua frota</p>
+          </div>
         </div>
         <Button size="sm" onClick={openAdd}>
           <Plus size={14} /> Adicionar veículo
         </Button>
       </div>
 
+      {/* KPIs — saem da lista já carregada; nenhuma consulta a mais. */}
+      {!loading && !error && veiculos.length > 0 && (
+        <div className="flex gap-3 overflow-x-auto pb-1">
+          <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shrink-0">
+            <span className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+              <Truck size={16} className="text-blue-600" />
+            </span>
+            <div>
+              <p className="text-xl font-bold text-gray-900 leading-none">{veiculos.length}</p>
+              <p className="text-xs text-gray-500 mt-1">Veículos cadastrados</p>
+            </div>
+          </div>
+
+          {Object.entries(porCombustivel)
+            .sort((a, b) => b[1] - a[1])
+            .map(([nome, qtd]) => (
+              <div key={nome} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shrink-0">
+                <span className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                  <Fuel size={16} className="text-emerald-600" />
+                </span>
+                <div>
+                  <p className="text-xl font-bold text-gray-900 leading-none">{qtd}</p>
+                  <p className="text-xs text-gray-500 mt-1 whitespace-nowrap">{nome}</p>
+                </div>
+              </div>
+            ))}
+
+          <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shrink-0">
+            <span className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+              <Wrench size={16} className="text-amber-600" />
+            </span>
+            <div>
+              <p className="text-xl font-bold text-gray-900 leading-none">{emManutencao}</p>
+              <p className="text-xs text-gray-500 mt-1 whitespace-nowrap">Em manutenção</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filtros */}
-      <div className="flex gap-3">
+      <div className="flex gap-3 flex-wrap">
         <div className="relative flex-1 max-w-xs">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-blue-500"
-            placeholder="Buscar por placa ou modelo..."
+            placeholder="Buscar por placa, modelo ou motorista..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => { setSearch(e.target.value); setPagina(1) }}
           />
         </div>
         <select
           className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-blue-500"
           value={fuelFilter}
-          onChange={e => setFuelFilter(e.target.value)}
+          onChange={e => { setFuelFilter(e.target.value); setPagina(1) }}
         >
-          <option value="">Todos combustíveis</option>
+          <option value="">Todos os combustíveis</option>
           {COMBUSTIVEIS.map(c => <option key={c}>{c}</option>)}
         </select>
+        {/* Só as três situações que de fato chegam à tela — 'inativo' é baixa
+            lógica e a rota nem devolve. */}
+        <select
+          className="px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-blue-500"
+          value={statusFilter}
+          onChange={e => { setStatusFilter(e.target.value); setPagina(1) }}
+        >
+          <option value="">Todos os status</option>
+          <option value="ativo">Ativo</option>
+          <option value="manutencao">Em manutenção</option>
+          <option value="bloqueado">Bloqueado</option>
+        </select>
+        {temFiltro && (
+          <button
+            onClick={limparFiltros}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 hover:text-gray-700 transition-colors"
+          >
+            <X size={14} /> Limpar filtros
+          </button>
+        )}
       </div>
 
       {loading && (
@@ -352,31 +489,66 @@ export default function VeiculosPage() {
       {!loading && !error && (
         <Card padding="none">
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-14 gap-2 text-gray-400">
-              <Search size={24} className="text-gray-200" />
-              <p className="text-sm font-medium">
-                {veiculos.length === 0 ? 'Nenhum veículo cadastrado.' : 'Nenhum veículo encontrado.'}
+            <div className="flex flex-col items-center justify-center py-16 gap-2 text-gray-400">
+              {veiculos.length === 0 ? <Truck size={26} className="text-gray-200" /> : <Search size={24} className="text-gray-200" />}
+              <p className="text-sm font-medium text-gray-500">
+                {veiculos.length === 0
+                  ? 'Você ainda não possui veículos cadastrados.'
+                  : 'Nenhum veículo encontrado.'}
               </p>
-              {veiculos.length === 0 && (
-                <button onClick={openAdd} className="text-xs text-blue-500 hover:underline mt-1">Adicionar primeiro veículo</button>
+              {/* O estado vazio oferece a saída certa para cada caso: cadastrar,
+                  quando não há frota; limpar, quando o filtro é que não casa. */}
+              {veiculos.length === 0 ? (
+                <Button size="sm" onClick={openAdd} className="mt-2">
+                  <Plus size={14} /> Adicionar veículo
+                </Button>
+              ) : (
+                <button
+                  onClick={limparFiltros}
+                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <X size={13} /> Limpar filtros
+                </button>
               )}
             </div>
           ) : (
-            <table className="w-full">
+            <>
+            {/* Rolagem horizontal em telas estreitas, em vez de espremer colunas. */}
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[840px]">
               <thead>
-                <tr className="text-xs text-gray-400 uppercase tracking-wide bg-gray-50">
-                  <th className="px-6 py-3 text-left">Placa</th>
-                  <th className="px-6 py-3 text-left">Modelo</th>
-                  <th className="px-6 py-3 text-left">Combustível</th>
-                  <th className="px-6 py-3 text-left">Limite/mês</th>
-                  <th className="px-6 py-3 text-left">Motorista padrão</th>
+                <tr className="text-xs text-gray-500 uppercase tracking-wide bg-gray-50">
+                  <th className="pl-6 pr-2 py-3 w-10">
+                    <input
+                      type="checkbox"
+                      aria-label="Selecionar todos da página"
+                      checked={todosMarcados}
+                      onChange={alternarTodos}
+                      className="rounded border-gray-300 accent-blue-600"
+                    />
+                  </th>
+                  <th className="px-4 py-3 text-left">Placa</th>
+                  <th className="px-4 py-3 text-left">Modelo</th>
+                  <th className="px-4 py-3 text-left">Combustível</th>
+                  <th className="px-4 py-3 text-left">Limite/mês</th>
+                  <th className="px-4 py-3 text-left">Motorista</th>
+                  <th className="px-4 py-3 text-left">Status</th>
                   <th className="px-6 py-3 text-right">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filtered.map(v => (
+                {visiveis.map(v => (
                   <tr key={v.id} className={`hover:bg-gray-50 transition-colors ${v.bloqueado ? 'bg-gray-50/60' : ''}`}>
-                    <td className="px-6 py-3 text-sm font-mono font-medium text-gray-900">
+                    <td className="pl-6 pr-2 py-3">
+                      <input
+                        type="checkbox"
+                        aria-label={`Selecionar ${v.placa}`}
+                        checked={selecionados.has(v.id)}
+                        onChange={() => alternarUm(v.id)}
+                        className="rounded border-gray-300 accent-blue-600"
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-sm font-mono font-medium text-gray-900">
                       <span className="flex items-center gap-2 flex-wrap">
                         <span className={v.bloqueado ? 'text-gray-400' : ''}>{v.placa}</span>
                         {v.bloqueioTipo === 'manutencao' && (
@@ -394,15 +566,35 @@ export default function VeiculosPage() {
                         )}
                       </span>
                     </td>
-                    <td className="px-6 py-3 text-sm text-gray-700">{v.modelo}</td>
-                    <td className="px-6 py-3">
+                    <td className="px-4 py-3 text-sm text-gray-700">{v.modelo}</td>
+                    <td className="px-4 py-3">
                       <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{v.combustivel}</span>
                     </td>
-                    <td className="px-6 py-3 text-sm font-medium text-gray-700">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-700 whitespace-nowrap">
                       {v.limiteMensal != null ? formatLimite(v.limiteMensal) : <span className="text-gray-400">—</span>}
                     </td>
-                    <td className="px-6 py-3 text-sm text-gray-600">
-                      {v.motoristaNome ?? <span className="text-gray-400">—</span>}
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {v.motoristaNome ? (
+                        <span className="inline-flex items-center gap-2">
+                          <span className="w-7 h-7 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold flex items-center justify-center shrink-0">
+                            {iniciaisDe(v.motoristaNome)}
+                          </span>
+                          <span className="whitespace-nowrap">{v.motoristaNome}</span>
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">Não definido</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {(() => {
+                        const sit = SITUACAO[situacaoDe(v)]
+                        return (
+                          <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full border whitespace-nowrap ${sit.classe}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${sit.ponto}`} />
+                            {sit.rotulo}
+                          </span>
+                        )
+                      })()}
                     </td>
                     <td className="px-6 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -412,6 +604,7 @@ export default function VeiculosPage() {
                             onClick={() => openDesbloqueio(v)}
                             className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Desbloquear veículo"
+                            aria-label={`Desbloquear ${v.placa}`}
                           >
                             <LockOpen size={14} />
                           </button>
@@ -420,15 +613,26 @@ export default function VeiculosPage() {
                             onClick={() => openBloqueio(v)}
                             className="p-1.5 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors"
                             title="Bloquear veículo"
+                            aria-label={`Bloquear ${v.placa}`}
                           >
                             <Lock size={14} />
                           </button>
                         )}
+                        {/* Visualizar */}
+                        <button
+                          onClick={() => setDetalhe(v)}
+                          className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Visualizar veículo"
+                          aria-label={`Visualizar ${v.placa}`}
+                        >
+                          <Eye size={14} />
+                        </button>
                         {/* Histórico */}
                         <button
                           onClick={() => openHistorico(v)}
                           className="p-1.5 text-gray-400 hover:text-purple-500 hover:bg-purple-50 rounded-lg transition-colors"
-                          title="Histórico de bloqueios"
+                          title="Ver histórico do veículo"
+                          aria-label={`Ver histórico de ${v.placa}`}
                         >
                           <History size={14} />
                         </button>
@@ -436,7 +640,8 @@ export default function VeiculosPage() {
                         <button
                           onClick={() => openEdit(v)}
                           className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Editar"
+                          title="Editar veículo"
+                          aria-label={`Editar ${v.placa}`}
                         >
                           <Pencil size={14} />
                         </button>
@@ -444,7 +649,8 @@ export default function VeiculosPage() {
                         <button
                           onClick={() => setDeleteTarget(v)}
                           className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Remover"
+                          title="Excluir veículo"
+                          aria-label={`Excluir ${v.placa}`}
                         >
                           <Trash2 size={14} />
                         </button>
@@ -454,9 +660,64 @@ export default function VeiculosPage() {
                 ))}
               </tbody>
             </table>
+            </div>
+
+            {/* Paginação sobre o conjunto FILTRADO. A consulta continua trazendo
+                a frota inteira da empresa numa ida só — para frotas de milhares
+                valeria mover o corte para o banco, como no histórico. */}
+            <div className="flex items-center justify-between gap-3 flex-wrap px-6 py-3 border-t border-gray-100">
+              <p className="text-xs text-gray-400">
+                Mostrando {(paginaAtual - 1) * porPagina + 1} a{' '}
+                {Math.min(paginaAtual * porPagina, filtered.length)} de {filtered.length} veículo
+                {filtered.length !== 1 ? 's' : ''}
+                {selecionados.size > 0 && ` · ${selecionados.size} selecionado${selecionados.size !== 1 ? 's' : ''}`}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPagina(p => Math.max(1, p - 1))}
+                  disabled={paginaAtual === 1}
+                  aria-label="Página anterior"
+                  className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft size={15} className="text-gray-600" />
+                </button>
+                <span className="text-xs text-gray-500 tabular-nums">
+                  {paginaAtual} / {totalPaginas}
+                </span>
+                <button
+                  onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
+                  disabled={paginaAtual === totalPaginas}
+                  aria-label="Próxima página"
+                  className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight size={15} className="text-gray-600" />
+                </button>
+                <select
+                  value={porPagina}
+                  onChange={e => { setPorPagina(Number(e.target.value)); setPagina(1) }}
+                  aria-label="Veículos por página"
+                  className="ml-1 px-2 py-1.5 text-xs border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-blue-500"
+                >
+                  {[10, 25, 50].map(n => <option key={n} value={n}>{n} por página</option>)}
+                </select>
+              </div>
+            </div>
+            </>
           )}
         </Card>
       )}
+
+      {/* ── Detalhe do veículo ────────────────────────────────────────────── */}
+      {/* Cada ação fecha o detalhe e devolve para o fluxo que já existe: nada
+          de bloqueio ou edição é reimplementado aqui dentro. */}
+      <ModalVeiculo
+        veiculo={detalhe}
+        onFechar={() => setDetalhe(null)}
+        onEditar={(v) => { setDetalhe(null); openEdit(v as Veiculo) }}
+        onBloquear={(v) => { setDetalhe(null); openBloqueio(v as Veiculo) }}
+        onDesbloquear={(v) => { setDetalhe(null); openDesbloqueio(v as Veiculo) }}
+        onHistorico={(v) => { setDetalhe(null); openHistorico(v as Veiculo) }}
+      />
 
       {/* ── Modal: Adicionar / Editar ──────────────────────────────────────── */}
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editingId ? 'Editar veículo' : 'Adicionar veículo'}>
