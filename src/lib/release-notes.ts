@@ -62,7 +62,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
         icone: 'frota',
         titulo: 'Central da frota em Veículos',
         descricao:
-          'Indicadores por combustível e em manutenção, busca por placa, modelo ou motorista, filtro por situação e paginação. Cada veículo abre um detalhe com o uso dos últimos 90 dias.',
+          'Os indicadores por combustível e em manutenção também são filtros: clique num deles para ver só esses veículos e clique de novo para voltar. Some-se a isso busca por placa, modelo ou motorista, filtro por situação e paginação. Cada veículo abre um detalhe com o uso dos últimos 90 dias.',
       },
       {
         icone: 'faturamento',

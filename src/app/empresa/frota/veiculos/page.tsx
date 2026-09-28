@@ -358,6 +358,20 @@ export default function VeiculosPage() {
   const paginaAtual  = Math.min(pagina, totalPaginas)
   const visiveis     = filtered.slice((paginaAtual - 1) * porPagina, paginaAtual * porPagina)
 
+  /**
+   * Cada indicador também filtra. Clicar de novo no mesmo desliga — sem isso o
+   * usuário fica preso num filtro que ele não lembra de ter ligado.
+   *
+   * O primeiro cartão é o "todos": limpa TUDO, inclusive a busca — ele mostra
+   * o total da frota, então a lista precisa ficar igual ao número dele.
+   */
+  const cartaoCls = (ativo: boolean) =>
+    `flex items-center gap-3 rounded-xl border px-4 py-3 shrink-0 text-left transition-colors ${
+      ativo
+        ? 'border-blue-300 bg-blue-50 ring-1 ring-blue-200'
+        : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'
+    }`
+
   const idsVisiveis = visiveis.map(v => v.id)
   const todosMarcados = idsVisiveis.length > 0 && idsVisiveis.every(id => selecionados.has(id))
   const alternarTodos = () => setSelecionados(prev => {
@@ -394,7 +408,13 @@ export default function VeiculosPage() {
       {/* KPIs — saem da lista já carregada; nenhuma consulta a mais. */}
       {!loading && !error && veiculos.length > 0 && (
         <div className="flex gap-3 overflow-x-auto pb-1">
-          <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shrink-0">
+          <button
+            type="button"
+            onClick={limparFiltros}
+            aria-pressed={!temFiltro}
+            title="Mostrar todos os veículos"
+            className={cartaoCls(!temFiltro)}
+          >
             <span className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
               <Truck size={16} className="text-blue-600" />
             </span>
@@ -402,12 +422,19 @@ export default function VeiculosPage() {
               <p className="text-xl font-bold text-gray-900 leading-none">{veiculos.length}</p>
               <p className="text-xs text-gray-500 mt-1">Veículos cadastrados</p>
             </div>
-          </div>
+          </button>
 
           {Object.entries(porCombustivel)
             .sort((a, b) => b[1] - a[1])
             .map(([nome, qtd]) => (
-              <div key={nome} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shrink-0">
+              <button
+                key={nome}
+                type="button"
+                onClick={() => { setFuelFilter(f => f === nome ? '' : nome); setPagina(1) }}
+                aria-pressed={fuelFilter === nome}
+                title={fuelFilter === nome ? `Remover o filtro ${nome}` : `Filtrar por ${nome}`}
+                className={cartaoCls(fuelFilter === nome)}
+              >
                 <span className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
                   <Fuel size={16} className="text-emerald-600" />
                 </span>
@@ -415,10 +442,16 @@ export default function VeiculosPage() {
                   <p className="text-xl font-bold text-gray-900 leading-none">{qtd}</p>
                   <p className="text-xs text-gray-500 mt-1 whitespace-nowrap">{nome}</p>
                 </div>
-              </div>
+              </button>
             ))}
 
-          <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shrink-0">
+          <button
+            type="button"
+            onClick={() => { setStatusFilter(s => s === 'manutencao' ? '' : 'manutencao'); setPagina(1) }}
+            aria-pressed={statusFilter === 'manutencao'}
+            title={statusFilter === 'manutencao' ? 'Remover o filtro Em manutenção' : 'Filtrar por Em manutenção'}
+            className={cartaoCls(statusFilter === 'manutencao')}
+          >
             <span className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
               <Wrench size={16} className="text-amber-600" />
             </span>
@@ -426,7 +459,7 @@ export default function VeiculosPage() {
               <p className="text-xl font-bold text-gray-900 leading-none">{emManutencao}</p>
               <p className="text-xs text-gray-500 mt-1 whitespace-nowrap">Em manutenção</p>
             </div>
-          </div>
+          </button>
         </div>
       )}
 
