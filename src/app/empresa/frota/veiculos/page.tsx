@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import {
   Plus, Pencil, Trash2, Search, Gauge, Loader2, AlertCircle,
   ChevronRight, ChevronLeft, Lock, LockOpen, Wrench, History, Truck, Fuel, X, Eye,
+  Check,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -98,6 +99,56 @@ function formatDate(iso: string) {
   })
 }
 
+/**
+ * Trilha das etapas do cadastro.
+ *
+ * Mostra as três ao mesmo tempo para o usuário saber quanto falta antes de
+ * começar: as concluídas ganham o visto, a atual o anel, e as futuras ficam
+ * apagadas. É só indicação — não dá para pular etapa clicando, porque a
+ * regra de avanço continua sendo a do `canAdvance()`.
+ */
+function IndicadorEtapas({ etapas, atual }: { etapas: string[]; atual: number }) {
+  return (
+    <div className="mb-6">
+      <p className="sr-only">Etapa {atual + 1} de {etapas.length}: {etapas[atual]}</p>
+      <div className="flex items-start">
+        {etapas.map((rotulo, i) => {
+          const concluida = i < atual
+          const ehAtual   = i === atual
+          return (
+            <Fragment key={rotulo}>
+              <div
+                aria-current={ehAtual ? 'step' : undefined}
+                className="flex w-[4.5rem] shrink-0 flex-col items-center gap-2 sm:w-24"
+              >
+                <span className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
+                  concluida ? 'bg-blue-600 text-white' :
+                  ehAtual   ? 'bg-blue-600 text-white ring-4 ring-blue-500/25' :
+                              'border border-gray-200 bg-gray-100 text-gray-400'
+                }`}>
+                  {concluida ? <Check size={15} strokeWidth={3} /> : i + 1}
+                </span>
+                <span className={`text-center text-[11px] leading-tight sm:text-xs ${
+                  ehAtual ? 'font-semibold text-blue-700' :
+                  concluida ? 'font-medium text-gray-700' : 'text-gray-400'
+                }`}>
+                  {rotulo}
+                </span>
+              </div>
+              {i < etapas.length - 1 && (
+                <div
+                  aria-hidden
+                  className={`mt-[15px] h-0.5 flex-1 rounded-full transition-colors ${concluida ? 'bg-blue-600' : 'bg-gray-200'}`}
+                />
+              )}
+            </Fragment>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function VeiculosPage() {
@@ -125,6 +176,10 @@ export default function VeiculosPage() {
   const [form,       setForm]       = useState(FORM_VAZIO)
   const [saving,     setSaving]     = useState(false)
   const [saveError,  setSaveError]  = useState<string | null>(null)
+  // Quais campos o usuário já visitou. Serve só para não apontar erro num
+  // formulário que ele ainda nem tocou — a REGRA de validação é a mesma de
+  // sempre, a do `canAdvance()`.
+  const [tocados,    setTocados]    = useState<Record<string, boolean>>({})
 
   // Remoção
   const [deleteTarget, setDeleteTarget] = useState<Veiculo | null>(null)
@@ -178,6 +233,7 @@ export default function VeiculosPage() {
     setForm(FORM_VAZIO)
     setEditingId(null)
     setSaveError(null)
+    setTocados({})
     setStep(0)
     setModalOpen(true)
   }
@@ -193,6 +249,7 @@ export default function VeiculosPage() {
     })
     setEditingId(v.id)
     setSaveError(null)
+    setTocados({})
     setStep(0)
     setModalOpen(true)
   }
@@ -205,6 +262,23 @@ export default function VeiculosPage() {
     if (step === 0) return form.placa.length >= 7 && form.modelo.trim().length > 0
     if (step === 1) return !!form.combustivel
     return true
+  }
+
+  /**
+   * As mensagens abaixo apenas EXPLICAM o `canAdvance()` — nenhuma delas
+   * bloqueia nada por conta própria. Sem isso o botão "Próximo" fica
+   * desabilitado e o usuário não descobre o porquê.
+   */
+  const erroPlaca  = tocados.placa  && form.placa.length < 7
+    ? 'Placa incompleta — use AAA-0000 ou AAA0A00.' : undefined
+  const erroModelo = tocados.modelo && !form.modelo.trim()
+    ? 'Informe o modelo do veículo.' : undefined
+
+  function dicaEtapa() {
+    if (canAdvance()) return null
+    if (step === 0) return 'Preencha a placa e o modelo para continuar.'
+    if (step === 1) return 'Escolha o combustível para continuar.'
+    return null
   }
 
   async function handleSave() {
@@ -753,43 +827,75 @@ export default function VeiculosPage() {
       />
 
       {/* ── Modal: Adicionar / Editar ──────────────────────────────────────── */}
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editingId ? 'Editar veículo' : 'Adicionar veículo'}>
-        {/* Indicador de etapas */}
-        <div className="flex items-center gap-1 mb-6">
-          {STEPS.map((label, i) => (
-            <div key={i} className="flex items-center gap-1 flex-1">
-              <div className="flex items-center gap-2 flex-1">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-colors ${
-                  i < step   ? 'bg-blue-600 text-white' :
-                  i === step ? 'bg-blue-600 text-white ring-4 ring-blue-100' :
-                               'bg-gray-100 text-gray-400'
-                }`}>
-                  {i < step ? '✓' : i + 1}
-                </div>
-                <span className={`text-xs font-medium whitespace-nowrap ${i <= step ? 'text-gray-700' : 'text-gray-400'}`}>{label}</span>
-              </div>
-              {i < STEPS.length - 1 && <div className={`h-px flex-1 mx-1 transition-colors ${i < step ? 'bg-blue-400' : 'bg-gray-200'}`} />}
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editingId ? 'Editar veículo' : 'Adicionar veículo'}
+        subtitulo={editingId
+          ? 'Revise os dados do veículo nas etapas abaixo.'
+          : `Cadastre os dados do veículo em ${STEPS.length} etapas.`}
+        icone={<Truck size={19} />}
+        footer={
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {/* A dica explica por que "Próximo" está desabilitado; ela some
+                assim que a etapa fica válida. */}
+            {dicaEtapa() && (
+              <p className="text-xs text-gray-500 sm:pr-4">{dicaEtapa()}</p>
+            )}
+            {/* ml-auto encosta os botões à direita mesmo sem a dica. */}
+            <div className="flex gap-2 sm:ml-auto sm:gap-3">
+              <Button variant="secondary" className="flex-1 sm:flex-none sm:min-w-28"
+                onClick={() => step === 0 ? setModalOpen(false) : setStep(s => s - 1)}>
+                {step === 0 ? 'Cancelar' : <><ChevronLeft size={14} /> Voltar</>}
+              </Button>
+              {/* "Próximo" desabilitado vira cinza de verdade: o
+                  disabled:opacity-50 padrão deixava o botão com cara de
+                  clicável. O "Salvando..." mantém a opacidade, porque ali o
+                  botão está ocupado, não bloqueado. */}
+              {step < STEPS.length - 1 ? (
+                <Button
+                  className="flex-1 sm:flex-none sm:min-w-32 disabled:opacity-100 disabled:bg-gray-100 disabled:text-gray-500"
+                  onClick={() => setStep(s => s + 1)} disabled={!canAdvance()}>
+                  Próximo <ChevronRight size={14} />
+                </Button>
+              ) : (
+                <Button className="flex-1 sm:flex-none sm:min-w-32" onClick={handleSave} disabled={saving}>
+                  {saving ? <><Loader2 size={14} className="animate-spin" /> Salvando...</> : editingId ? 'Salvar alterações' : 'Adicionar'}
+                </Button>
+              )}
             </div>
-          ))}
-        </div>
+          </div>
+        }
+      >
+        <IndicadorEtapas etapas={STEPS} atual={step} />
 
         {step === 0 && (
           <div className="space-y-4">
             <Input label="Placa" placeholder="ABC-1234 ou ABC1D23"
               value={form.placa} onChange={e => update('placa', formatPlaca(e.target.value))}
-              disabled={!!editingId} helperText="Formato antigo (AAA-0000) ou Mercosul (AAA0A00)" />
+              onBlur={() => setTocados(t => ({ ...t, placa: true }))}
+              disabled={!!editingId} error={erroPlaca}
+              helperText="Formato antigo (AAA-0000) ou Mercosul (AAA0A00)" />
             <Input label="Modelo" placeholder="Ex: Honda Fit 1.5 EX"
-              value={form.modelo} onChange={e => update('modelo', e.target.value)} />
+              value={form.modelo} onChange={e => update('modelo', e.target.value)}
+              onBlur={() => setTocados(t => ({ ...t, modelo: true }))}
+              error={erroModelo} />
           </div>
         )}
 
         {step === 1 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">Selecione o combustível</label>
-            <div className="grid grid-cols-2 gap-2">
+          <div role="radiogroup" aria-labelledby="rotulo-combustivel">
+            <label id="rotulo-combustivel" className="block text-sm font-medium text-gray-700 mb-1">
+              Selecione o combustível
+            </label>
+            <p className="mb-3 text-xs text-gray-500">
+              É o combustível que o veículo usa no abastecimento.
+            </p>
+            {/* Uma coluna no celular: "Gasolina Aditivada" não cabe em duas. */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {COMBUSTIVEIS.map(c => (
-                <label key={c} className={`flex items-center gap-3 px-4 py-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                  form.combustivel === c ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                <label key={c} className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-blue-100 ${
+                  form.combustivel === c ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                 }`}>
                   <input type="radio" name="combustivel" value={c}
                     checked={form.combustivel === c} onChange={() => update('combustivel', c)} className="sr-only" />
@@ -810,7 +916,7 @@ export default function VeiculosPage() {
             <Input label="Limite mensal (R$)" type="number" placeholder="Ex: 1200 (opcional)"
               value={form.limiteMensal} onChange={e => update('limiteMensal', e.target.value)}
               helperText="Deixe em branco para sem limite" />
-            <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+            <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
               onClick={() => update('exigirQuilometragem', !form.exigirQuilometragem)}>
               <div className="relative shrink-0">
                 <div className={`w-9 h-5 rounded-full transition-colors ${form.exigirQuilometragem ? 'bg-blue-600' : 'bg-gray-200'}`} />
@@ -818,16 +924,20 @@ export default function VeiculosPage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-700">Exigir quilometragem</p>
-                <p className="text-xs text-gray-400">Motorista deverá informar o odômetro ao abastecer</p>
+                <p className="text-xs text-gray-500">Motorista deverá informar o odômetro ao abastecer</p>
               </div>
             </label>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Motorista padrão</label>
-              <select className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 bg-white"
+              <label htmlFor="motorista-padrao" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Motorista padrão
+              </label>
+              <select id="motorista-padrao"
+                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
                 value={form.motoristaPadraoId} onChange={e => update('motoristaPadraoId', e.target.value)}>
                 <option value="">Nenhum</option>
                 {motoristas.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
               </select>
+              <p className="mt-1.5 text-xs text-gray-500">Opcional — pode ser trocado a cada requisição.</p>
             </div>
             {saveError && (
               <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
@@ -836,22 +946,6 @@ export default function VeiculosPage() {
             )}
           </div>
         )}
-
-        <div className="flex gap-3 pt-5 mt-auto">
-          <Button variant="secondary" className="flex-1"
-            onClick={() => step === 0 ? setModalOpen(false) : setStep(s => s - 1)}>
-            {step === 0 ? 'Cancelar' : <><ChevronLeft size={14} /> Voltar</>}
-          </Button>
-          {step < STEPS.length - 1 ? (
-            <Button className="flex-1" onClick={() => setStep(s => s + 1)} disabled={!canAdvance()}>
-              Próximo <ChevronRight size={14} />
-            </Button>
-          ) : (
-            <Button className="flex-1" onClick={handleSave} disabled={saving}>
-              {saving ? <><Loader2 size={14} className="animate-spin" /> Salvando...</> : editingId ? 'Salvar alterações' : 'Adicionar'}
-            </Button>
-          )}
-        </div>
       </Modal>
 
       {/* ── Modal: Remover ─────────────────────────────────────────────────── */}

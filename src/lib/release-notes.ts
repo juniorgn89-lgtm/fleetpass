@@ -65,6 +65,12 @@ export const RELEASE_NOTES: ReleaseNote[] = [
           'Os indicadores por combustível e em manutenção também são filtros: clique num deles para ver só esses veículos e clique de novo para voltar. Some-se a isso busca por placa, modelo ou motorista, filtro por situação e paginação. Cada veículo abre um detalhe com o uso dos últimos 90 dias.',
       },
       {
+        icone: 'frota',
+        titulo: 'Cadastro de veículo em etapas, sem adivinhação',
+        descricao:
+          'A janela de adicionar veículo mostra as três etapas no topo, marca as já concluídas e diz o que falta preencher quando o botão de avançar está desligado. Os botões ficam sempre à vista, inclusive no celular.',
+      },
+      {
         icone: 'faturamento',
         titulo: 'Painel do posto com evolução no tempo',
         descricao:
